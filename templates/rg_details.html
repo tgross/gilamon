@@ -1,0 +1,21 @@
+<div class="section-header">Replicated Folders</div>
+
+{% for r in rfolders %}
+<div><span class="key">Folder: </span>{{ r.name }}</div>
+<div><span class="key">State: </span> {{ r.folder_state }}</div>
+<div><span class="key">Current size of Staging: </span> {{ r.current_size_staging }} MB</div>
+<div><span class="key">Current size of Conflicts & Deleted: </span> {{ r.current_size_conflicts }} MB</div>
+{% endfor %}
+
+<div class="section-header">Connectors</div>
+
+{% for c in connectors %}
+<div
+   class="tool-tipped"
+   onmouseover="show_sync('{{ c.Guid }}');"
+   onmouseout="tooltip.hide();"
+   id="#{{ c.Guid }}">
+   <img class="status-icon" src="./static/icon_{{ c.State }}.png"/>
+   {{c.Title}}
+</div>
+{% endfor %}

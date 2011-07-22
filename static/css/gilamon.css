@@ -1,0 +1,52 @@
+body {
+    color: #000000;
+    font-family: Verdana,Arial,Helvetica,sans-serif;
+    font-size: 80%;
+    font-style: normal;
+    text-decoration: none;
+    text-align : left;
+}
+
+#tooltip {
+    position: absolute;
+    display:block;
+    padding:2px 12px 3px 7px;
+    margin-left:5px;
+    background:#666;
+    color:#FFF;
+}
+
+#logo {
+    //TODO
+}
+
+.header {
+    padding-left: 2em;
+}
+
+.tool-tipped:hover {
+    width: 40%;
+    background-color: Silver;
+}
+
+.status-icon {
+    margin-right:1em;
+    vertical-align:middle;
+    border:none;
+}
+
+.section-header {
+    padding-top: 1em;
+    padding-bottom: 1em;
+    font-weight: bold;
+    font-size: 100%;
+}
+
+.key {
+    font-weight: bold;
+}
+
+.error-msg {
+    font-weight: bold;
+    color: red;
+}

@@ -1,0 +1,129 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>GilaMon - DFSR Monitoring</title>
+
+<link href="./static/css/humanity/jquery-ui-1.8.14.custom.css" rel="stylesheet" type="text/css" />
+<link href="./static/css/gilamon.css" rel="stylesheet" type="text/css" />
+<script type="text/javascript" src="./static/js/jquery-1.5.1.min.js"></script>
+<script type="text/javascript" src="./static/js/jquery-ui-1.8.14.custom.min.js"></script>
+<script type="text/javascript" src="./static/js/tooltip.js"></script>
+
+<script type="text/javascript">
+
+function show_sync(guid) {
+    $.getJSON("/show_sync/"+guid, function(sync_data) {
+        var sync_div =
+            "InitiationReason: " + sync_data["InitiationReason"] + "<br/>" +
+            "Start Time: " + sync_data["StartTime"] + "<br/>" +
+            "End Time: " + sync_data["EndTime"] + "<br/>" +
+            "Updates Transferred: " + sync_data["UpdatesTransferred"] + "<br/>" +
+            "Bytes Transferred: " + sync_data["BytesTransferred"] + "<br/>" +
+            "Updates Not Transferred: " + sync_data["UpdatesNotTransferred"] + "<br/>" +
+            "Updates To Be Transferred: " + sync_data["UpdatesToBeTransferred"] + "<br/>" +
+            "Conflicts Generated: " + sync_data["ConflictsGenerated"] + "<br/>" +
+            "Tombstones Generated: " + sync_data["TombstonesGenerated"] + "<br/>" +
+            "Force Replication Bandwidth Level: " + sync_data["ForceReplicationBandwidthlevel"] + "<br/>" +
+            "Last Error Code: " + sync_data["LastErrorCode"] + "<br/>";
+        if (sync_data["ActiveUpdates"] != "") {
+            var updates_div = "<p>Current Updates:</p>";
+            $.each(sync_data["ActiveUpdates"], function(obj, val) {
+                updates_div = updates_div + val + "<br/>";
+            });
+            sync_div = sync_div + updates_div;
+        }
+        tooltip.show(sync_div);
+    });
+}
+
+function set_server() {
+    var server = $("input[name=server-radio]:checked", "#server-selector").val()
+    var change = $.post("change_server/" + server, function() {
+        location.reload(true);
+    });
+}
+
+$(function() {
+
+    $("#servers").buttonset();
+    $.get("get_server_status/{{ server_name }}", function(data) {
+        $("#server_status").append(data);
+    });
+
+    $.get("get_rg_states/{{ server_name }}", function(data) {
+        $("#replication_data").append(data);
+    })
+    .error(function() { 
+        $("#replication_data").append(
+             "<div class='error-msg'>ERROR: Failed to get replication group states.</div>")
+    });
+
+    $.get("get_connector_states/{{ server_name }}", function(data) {
+        $("#connector_data").empty();
+        $("#connector_data").append(data);
+    })
+    .error(function() { 
+        $("#connector_data").append(
+             "<div class='error-msg'>ERROR: Failed to get connector states.</div>");
+    });
+
+    $.get("get_replication_group_list/{{ server_name }}", function(data) {
+        $("#accordion").append(data).accordion();
+        $("#accordion")
+         .accordion({
+             header: "> div > h3",
+             collapsible: true,
+             change: function(event, ui) {
+                 var clicked = $(this).accordion("option","active");
+                 if (clicked) {
+                     guid = ui.newContent.attr("id");
+                     $.get("/show_replication/"+guid, function(data) {
+                         ui.newContent.empty();
+                         ui.newContent.append(data);
+                         $("#accordion").accordion("resize");
+                     });
+                 }
+             }
+         });
+    })
+    .error(function() { 
+        $("#accordion").append(
+             "<div class='error-msg'>ERROR: Failed to get list of replication groups.</div>")
+    });
+
+});
+
+</script>
+</head>
+
+<body>
+<div id="banner">
+<h1>The Burns Group</h1>
+</div>
+
+<div id="servers">
+<form id="server-selector">
+  {% for s in servers_avail %}
+  <input type="radio" id="#{{ s }}"
+	 name="server-radio" value="{{s}}"
+	 onclick="set_server()"/>
+  <label for="#{{ s }}">{{ s }}</label>
+  {% endfor %}
+</form>
+</div>
+
+<h2>{{ server_name }}</h2>
+<div id="accordion">
+    <h3 class="header"><a href="#SummaryData">Summary</a></h3>
+    <div id="SummaryData">
+      <div>Server state: <div id="server_status"></div></div>
+      <div class="section-header">Replication Group Status</div>
+      <div id="replication_data"></div>
+      <div class="section-header">Connector Status</div>
+      <div id="connector_data"></div>
+    </div>
+</div>
+
+</body>
+</html>
