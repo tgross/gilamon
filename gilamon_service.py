@@ -21,11 +21,8 @@ class GilaMonService (win32serviceutil.ServiceFramework):
     _svc_description_ = "DFSR Monitoring Service"
 
     def SvcDoRun(self):
-        if hasattr(sys, 'frozen'):
-            # We're running from a py2exe executable file
-            current_dir = os.path.dirname(sys.executable)
-        else:
-            current_dir = os.path.dirname(os.path.abspath(__file__))
+
+        current_dir = gila_mon.get_working_dir()
 
         # You should include a log.error_file value in the config file
         configFile = os.path.join(current_dir, 'gilamon.conf')
@@ -49,7 +46,7 @@ class GilaMonService (win32serviceutil.ServiceFramework):
         cherrypy.config.update(configFile)
         cherrypy.config.update(appConfig)
 
-        app = cherrypy.tree.mount(GilaMonRoot(), '/', configFile)
+        app = cherrypy.tree.mount(gila_mon.GilaMonRoot(), '/', configFile)
         app.merge(appConfig)
 
         cherrypy.engine.subscribe('start_thread', InitializeCOM)

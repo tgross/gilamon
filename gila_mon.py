@@ -9,7 +9,15 @@ import json
 
 from dfsr_query import *
 
-env = Environment(loader=FileSystemLoader('templates'))
+env = Environment(loader=FileSystemLoader(os.path.join(get_working_dir(), 'templates')))
+
+def get_working_dir():
+    if hasattr(sys, 'frozen'):
+        # We're running from a py2exe executable file
+        current_dir = os.path.dirname(sys.executable)
+    else:
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+    return current_dir
 
 class GilaMonRoot:
 
