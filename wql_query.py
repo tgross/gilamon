@@ -9,19 +9,19 @@ from collections import namedtuple
 
 class Wql_Query():
 
-    def __init__(self, name_space = None, credentials = None, property_enums = None):
+    def __init__(self, name_space = None, user = '', password = '', property_enums = None):
         '''
-        TODO: this will use the current security context.  I'm not sure if this is
-        going to give us trouble when we try to run the monitor as a service.  I
-        think we might need to "impersonate" the user.
+        This class will use the current security context if not passed credentials.
+        If you intend to make Wql_Query requests as part of a service, make sure that
+        the service has valid login credentials to the DFSR server or its domain.
         '''
         if name_space:
+            self.user = user
+            self.password = password
             self.name_space = name_space
-            self.user = '' #credentials[0]
-            self.password = '' #credentials[1]
             self.PROPERTY_ENUMS = property_enums
         else:
-            raise Exception('You need to supply a WMI namespace and credentials')
+            raise Exception('WMI namespace not provided.')
 
     def make_query(self, server_name = None, wql_query = None):
         '''

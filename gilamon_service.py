@@ -4,6 +4,7 @@ import os.path
 import win32serviceutil
 import win32service
 import servicemanager
+from pythoncom import CoInitialize, CoUninitialize
 import cherrypy
 
 import gila_mon
@@ -59,6 +60,20 @@ class GilaMonService (win32serviceutil.ServiceFramework):
         self.ReportServiceStatus(win32service.SERVICE_STOP_PENDING)
         cherrypy.engine.exit()
         self.ReportServiceStatus(win32service.SERVICE_STOPPED) 
+
+
+'''
+The cherrypy web server is multithreaded.  In order to use COM objects returned
+by win32com.client.GetObject in that environment, we need to set up COM access to
+the threads.
+See also http://www.cherrypy.org/wiki/UsingCOMObjects
+'''
+
+def InitializeCOM(threadIndex):
+    CoInitialize()
+
+def UninitializeCOM(threadIndex):
+    CoUninitialize()
 
 if __name__ == '__main__':
     win32serviceutil.HandleCommandLine(GilaMonService)
