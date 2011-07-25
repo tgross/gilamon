@@ -7,6 +7,7 @@ import servicemanager
 import cherrypy
 
 import gila_mon
+from gila_mon import *
 
 class GilaMonService (win32serviceutil.ServiceFramework):
     '''
@@ -21,14 +22,10 @@ class GilaMonService (win32serviceutil.ServiceFramework):
     _svc_description_ = "DFSR Monitoring Service"
 
     def SvcDoRun(self):
-        if hasattr(sys, 'frozen'):
-            # We're running from a py2exe executable file
-            current_dir = os.path.dirname(sys.executable)
-        else:
-            current_dir = os.path.dirname(os.path.abspath(__file__))
+        current_dir = gila_mon.get_working_dir()
 
         # You should include a log.error_file value in the config file
-        configFile = os.path.join(current_dir, 'gilamon.conf')
+        configFile = os.path.join(current_dir, 'config', 'gilamon.conf')
         static_dir = os.path.join(current_dir, 'static')
         appConfig = {
             'global':{
