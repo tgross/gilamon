@@ -7,8 +7,6 @@ import platform
 # Definitely leave in the _ssl module, because CherryPy relies on
 # it even though we're not using it.
 excludes = [
-            'calendar', 'difflib', 'doctest', 'email', 'locale', 'optparse',
-            'pdb', 'pickle', 'unittest',
             '_tkinter', 'Tkconstants', 'Tkinter', 'tcl',
             'win32com.gen_py', #leave this out to dynamically generate typelibs!
             ]
