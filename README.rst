@@ -6,7 +6,7 @@ GilaMon is a simple monitoring tool for Windows `Distributed File System Replica
 
 It is *also* a set of tools written in `Python`_ that can be used by Windows system administrators who are comfortable with scripting to monitor DFSR or other Windows services through the `Windows Management Instrumentation`_ API.
 
-GilaMon is `BSD licensed`_ and is designed to have cleanly seperated architecture that will hopefully make hacking on the code easy even for novice programmers and/or system administrators who want to extend it.  The package described here includes an example implementation of a `CherryPy`_ web service and the web page that an administrator can use to view the current status of DFSR on their network.  You can use GilaMon's backend to monitor DFSR or any other WMI namespace without using the web service.
+GilaMon is `BSD licensed`_ and is designed to have cleanly separated architecture that will hopefully make hacking on the code easy even for novice programmers and/or system administrators who want to extend it.  The package described here includes an example implementation of a `CherryPy`_ web service and the web page that an administrator can use to view the current status of DFSR on their network.  You can use GilaMon's backend to monitor DFSR or any other WMI namespace without using the web service.
 
 The backend for GilaMon makes WQL queries against your servers, performs introspection on the COM objects returned by WMI, and then gives you easy-to-comprehend tuples of key-value pairs.  The keys will always be the same as the named properties of WMI objects described in Microsoft's documentation, and the values will be friendly types such as strings, ints, and Python datetime objects.  For example, if you're making a query against the `DfsrReplicatedFolderInfo`_ class, you can check the documentation on MSDN to see that to find out the current size of the Staging folder, you should look at the ``CurrentStageSizeInMb`` property.
 
@@ -14,7 +14,7 @@ The backend for GilaMon makes WQL queries against your servers, performs introsp
 Motivation
 ==========
 
-Why build something like this?  At `Burns Engineering, Inc.`_ where GilaMon was developed, we moved to DFSR in early 2010.  We used DFSR to replicate our main file shares between the home office and four remote sites, as well as a backup hub. All was well for quite some time. But we then had a minor catastrophy - a user saved a file, and it disappeared from the share.  This happened repeatedly over a short period of time, causing a lot of grief to our users.
+Why build something like this?  At `Burns Engineering, Inc.`_ where GilaMon was developed, we moved to DFSR in early 2010.  We used DFSR to replicate our main file shares between the home office and four remote sites, as well as a backup hub. All was well for quite some time. But we then had a minor catastrophe - a user saved a file, and it disappeared from the share.  This happened repeatedly over a short period of time, causing a lot of grief to our users.
 
 We eventually isolated the problem to a particular application's files (Autodesk's `AutoCAD`_) and a particular replication connection to one of our branch offices with poor connectivity.  A support case with Microsoft went nowhere, and the only tools that Microsoft had available for us were log grubbers - it seemed impossible to catch DFSR in the act.  Eventually the problem "went away" on its own, but we knew that it was only a matter of time until it returned.
 
@@ -40,7 +40,7 @@ Browser Support
 
 The GilaMon example web service has been tested with Internet Explorer 7 and newer, and should work with other modern browsers as well.  Internet Explorer 6 and earlier is unsupported.
 
-The backend of GilaMon is browser-independant.
+The backend of GilaMon is browser-independent.
 
 
 Installation
@@ -118,13 +118,13 @@ Following are what I suspect might be Frequently Asked Questions about installin
 __________________________________________________
 Check the Event Log.  It may show you that it's a configuration issue.  Make sure the IP and port number are valid.  If that's not it, please contact me or file an issue so that we can try to fix the problem (include the text of the event, if possible).
 
-**The GilaMon service installs and starts, but I get ``"Internet Explorer cannot view this page"`` on the web page.**
-_____________________________________
+**The GilaMon service installs and starts, but I get "Internet Explorer cannot view this page" on the web page.**
+_________________________________________________________________________________________________________________
 Make sure that the Windows firewall on the server running the web service allows the port you've listed in the ``gilamon.conf``.
 
-**The GilaMon service installs and starts, but I get ``"ERROR: Failed to get connector states"`` on the web page.**
-___________________________________
-Check the log file found at ``C:/Windows/temp/gilamon.log`` (if you didn't change this path in your config).  You may see an Access Denied error in the stack trace.  Make sure the the user that you're using for the GilaMon service has permissions to make WMI queries against the DFSR server (Server Manager -> Control -> WMI Control).
+**The GilaMon service installs and starts, but I get "ERROR: Failed to get connector states" on the web page.**
+_______________________________________________________________________________________________________________
+Check the log file found at ``C:/Windows/temp/gilamon.log`` (if you didn't change this path in your config).  You may see an Access Denied error in the stack trace.  Make sure the user that you're using for the GilaMon service has permissions to make WMI queries against the DFSR server (Server Manager -> Control -> WMI Control).
 
 **Yeah, I tried that already.**
 _______________________________
