@@ -58,6 +58,7 @@ to do with it.  You can:
 **Installing the Windows Executable**
 If you just want to run GilaMon as a Windows service, and don't plan on
 making any changes to the code, you can just `download the Windows executables`_.  You can run the exectuable from a server and then use your workstation's web browser, or you can run the executable directly from your workstation and browse to ``localhost`` instead.
+
   * Download the file for your architecture (64 or 32 bit).
   * Unzip the archive into your Program Files directory.
   * Open a command line into the ``gilamon`` directory.
@@ -66,6 +67,7 @@ making any changes to the code, you can just `download the Windows executables`_
 
 **Installing as a Python Service or Script [Recommended]**
 Running as a Python service is more complex if you don't already use Python.  But this is the recommended way to run GilaMon because it is easier to update your software or the libraries on which it depends.  You can also hack directly on the software without having to go through a complicated compiling process with ``py2exe``.  You'll need to do the following on the machine where you want to run the GilaMon web service (either your workstation or a server).
+
   * `Download and install Python`_ (2.7).
   * `Download and install setuptools`_
   * `Download and install pywin32`_ (Build 216 or newer)
@@ -74,6 +76,7 @@ Running as a Python service is more complex if you don't already use Python.  Bu
   * Either download the `current source code`_ zip archive for GilaMon or use `Mercurial`_ to clone the repository, and extract into your ``Python27/Lib/sites-packages`` directory.
 
 If you want to run as a service instead of a script, also do the following:
+
   * Open a command line into the ``gilamon`` directory.
   * ``python setup.py -install``
 
@@ -110,27 +113,30 @@ Troubleshooting
 Following are what I suspect might be Frequently Asked Questions about installing and running GilaMon.
 
 **The GilaMon service installs, but won't start.**
+
 Check the Event Log.  It may show you that it's a configuration issue.  Make sure the IP and port number are valid.  If that's not it, please contact me or file an issue so that we can try to fix the problem (include the text of the event, if possible).
 
 **The GilaMon service installs and starts, but I get ``"Internet Explorer cannot view this page"`` on the web page.**
+
 Make sure that the Windows firewall on the server running the web service allows the port you've listed in the ``gilamon.conf``.
 
 **The GilaMon service installs and starts, but I get ``"ERROR: Failed to get connector states"`` on the web page.**
+
 Check the log file found at ``C:/Windows/temp/gilamon.log`` (if you didn't change this path in your config).  You may see an Access Denied error in the stack trace.  Make sure the the user that you're using for the GilaMon service has permissions to make WMI queries against the DFSR server (Server Manager -> Control -> WMI Control).
 
 **Yeah, I tried that already.**
+
 Currently, GilaMon uses the default WMI security context for passing credentials from the machine running GilaMon to the DFSR server it's querying.  But Windows operating systems with UAC (Vista, 7, Server 2008r2) have stricter controls by default.  So if you run GilaMon from an older OS and query a newer OS, you'll get an Access Denied error. This is next on my TODO list to fix.
 
 **Nope, still doesn't work.**
+
 Sorry about that!  Please use the `issue tracker`_ and file an issue so that I can fix the problem and improve GilaMon for everyone.  Please send along any relevant log information.
 
 
 Contributing
 ============
 
-GilaMon is an open source project managed using `Mercurial`_ version control. The repository is hosted on `Bitbucket`_, so contributing is simple: fork the project and commit back your changes.
-
-Please keep in mind the following about contributing:
+GilaMon is an open source project managed using `Mercurial`_ version control. The repository is hosted on `Bitbucket`_, so contributing is simple: fork the project and commit back your changes. Please keep in mind the following about contributing:
 
   * Contributed code must be written in the existing style. Please follow `PEP 8`_.
   * Run the tests before committing your changes. If your changes break the build, they won't be accepted.
