@@ -26,7 +26,7 @@ class GilaMonRoot:
     @cherrypy.expose
     def index(self):
         self.server = server = cherrypy.session.get('server')
-		servers = cherrypy.request.app.config['dfsr']['servers']
+        servers = cherrypy.request.app.config['dfsr']['servers']
         if not server:
             self.server = servers[0]
 
@@ -101,7 +101,7 @@ class GilaMonRoot:
                             ),
             'conn_red':     [self.get_connector_name(*c)
                                for c in (cn_states['Offline'] +
-										 cn_states['In Error'])
+                                         cn_states['In Error'])
                             ],
           }
         t = env.get_template('connector_states.html')
@@ -160,8 +160,8 @@ class GilaMonRoot:
 
         if len(active_files) > 0:
             updates = [ (f.FullPathName + " [" + f.UpdateState + "]: " +
-                         self.get_connector_direction(
-							 self.server, f.PartnerName, f.Inbound) )
+                        self.get_connector_direction(
+                        self.server, f.PartnerName, f.Inbound) )
                         for f in active_files ]
         else:
             updates = []
