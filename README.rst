@@ -28,6 +28,7 @@ GilaMon relies on COM and is currently supported only on Windows, and can be run
 
   * `Python`_ (Tested with 2.7)
   * `pywin32`_ (Tested with Build216 and newer)
+  * `mock`_ (You don't need this to run GilaMon, just to develop on it.)
 
 The example GilaMon web service uses the following libraries:
 

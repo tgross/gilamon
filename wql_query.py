@@ -23,7 +23,7 @@ class Wql_Query():
             self.user = user
             self.password = password
             self.name_space = name_space
-            self.PROPERTY_ENUMS = property_enums
+            self.property_enums = property_enums
         else:
             raise Exception('WMI namespace not provided.')
 
@@ -66,7 +66,7 @@ class Wql_Query():
                                       [x.Name for x in
                                        raw_query_results[0].Properties_])
 
-            if self.PROPERTY_ENUMS and com_class_name in self.PROPERTY_ENUMS:
+            if self.property_enums and com_class_name in self.property_enums:
                 #remember to *unpack list arguments to instantiate a namedtuple!
                 return [Query_Result (
                             *[self._get_friendly_value(com_class_name,
@@ -87,7 +87,7 @@ class Wql_Query():
     def _get_friendly_value(self, com_class_name, name, val):
         '''
         Replaces the unfriendly integer index value for the COM enums with the
-        appropriate friendly string value in the PROPERTY_ENUMS dictionary, and
+        appropriate friendly string value in the property_enums dictionary, and
         converts UTC time stamps to struct_time objects for the caller to format.
 	Note: WMI returns year 1601 or 9999 to indicate unfinished processes,
 	but this will return only the standard 1601.
@@ -98,8 +98,8 @@ class Wql_Query():
             return strptime(val[:-4], '%Y%m%d%H%M%S.%f')
         else:
             try:
-                valid_values = self.PROPERTY_ENUMS[com_class_name][name][1]
-                idx = val - self.PROPERTY_ENUMS[com_class_name][name][0]
+                valid_values = self.property_enums[com_class_name][name][1]
+                idx = val - self.property_enums[com_class_name][name][0]
                 return valid_values[idx]
             except:
                 return val
