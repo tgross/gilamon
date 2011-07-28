@@ -18,22 +18,23 @@ def get_working_dir():
         current_dir = os.path.dirname(os.path.abspath(__file__))
     return current_dir
 
-env = Environment(loader=FileSystemLoader(os.path.join(get_working_dir(), 'templates')))
+env = Environment(loader=FileSystemLoader(
+	os.path.join(get_working_dir(), 'templates')))
 
 class GilaMonRoot:
 
-    server = DEFAULT_SERVER
-
     @cherrypy.expose
     def index(self):
-        self.dfsr = Dfsr_Query()
         self.server = server = cherrypy.session.get('server')
+		servers = cherrypy.request.app.config['dfsr']['servers']
         if not server:
-            self.server = DEFAULT_SERVER
+            self.server = servers[0]
+
+        self.dfsr = Dfsr_Query(self.server)
 
         context = {
             'server_name': self.server,
-            'servers_avail': SERVERS,
+            'servers_avail': servers,
             }
         t = env.get_template('index.html')
         return t.render(context)
@@ -99,7 +100,8 @@ class GilaMonRoot:
                               len(cn_states['In Error'])
                             ),
             'conn_red':     [self.get_connector_name(*c)
-                               for c in (cn_states['Offline'] + cn_states['In Error'])
+                               for c in (cn_states['Offline'] +
+										 cn_states['In Error'])
                             ],
           }
         t = env.get_template('connector_states.html')
@@ -115,7 +117,7 @@ class GilaMonRoot:
         context = { 'replication_groups': replication_groups }
         t = env.get_template('rg_list.html')
         return t.render(context)
-        
+
 
     @cherrypy.expose
     def show_replication(self, guid, server=None):
@@ -129,11 +131,12 @@ class GilaMonRoot:
             'current_size_conflicts': r.CurrentConflictSizeInMb,
             }
             for r in rf]
-        
+
         connection_info = self.dfsr.get_connectors(guid, server)
         connectors = [
             {'Guid': x.ConnectionGuid,
-             'Title': self.get_connector_direction(x.MemberName, x.PartnerName, x.Inbound),
+             'Title': self.get_connector_direction(
+				 x.MemberName, x.PartnerName, x.Inbound),
              'State': x.State,
             }
             for x in connection_info]
@@ -151,20 +154,22 @@ class GilaMonRoot:
     @tools.json_out()
     def show_sync(self, guid, server=None):
         server = self.check_session_server(server)
-        
+
         sync = self.dfsr.get_sync_details(guid)[0]
         active_files = self.dfsr.get_update_details(sync.ConnectionGuid)
 
         if len(active_files) > 0:
             updates = [ (f.FullPathName + " [" + f.UpdateState + "]: " +
-                         self.get_connector_direction(self.server, f.PartnerName, f.Inbound) )
+                         self.get_connector_direction(
+							 self.server, f.PartnerName, f.Inbound) )
                         for f in active_files ]
         else:
             updates = []
 
         context = {
             'ConnectionGuid': sync.ConnectionGuid,
-            'Title': self.get_connector_direction(sync.MemberName, sync.PartnerName, sync.Inbound),
+            'Title': self.get_connector_direction(
+				sync.MemberName, sync.PartnerName, sync.Inbound),
             'MemberGuid': sync.MemberGuid,
             'PartnerGuid': sync.PartnerGuid,
             'ReplicationGroupGuid': sync.ReplicationGroupGuid,
@@ -181,8 +186,9 @@ class GilaMonRoot:
             'TombstonesGenerated': sync.TombstonesGenerated,
             'LastErrorCode': sync.LastErrorCode,
             'LastErrorMessageId': sync.LastErrorMessageId,
-            'ForceReplicationEndTime': self.format_time(sync.ForceReplicationEndTime),
-            'ForceReplicationBandwidthlevel': sync.ForceReplicationBandwidthlevel,
+            'ForceReplicationEndTime': self.format_time(
+				sync.ForceReplicationEndTime),
+            'ForceReplicationBandwidthlevel':sync.ForceReplicationBandwidthlevel,
             'ActiveUpdates': updates,
         }
         return context
@@ -205,7 +211,8 @@ class GilaMonRoot:
             return strftime(time_format, time_obj)
 
     def get_connector_name(self, rep_group, member, partner, is_inbound):
-        return rep_group + ': ' + self.get_connector_direction(member, partner, is_inbound)
+        return rep_group + ': ' + self.get_connector_direction(
+			member, partner, is_inbound)
 
     def get_connector_direction(self, member, partner, is_inbound):
         '''pretty-printing preprocessing with an arrow character'''
@@ -240,19 +247,27 @@ def UninitializeCOM(threadIndex):
 
 if __name__ == '__main__':
 
-    current_dir = os.path.dirname(os.path.abspath(__file__))
-    static_dir = os.path.join(current_dir, 'static')
-    config = {
-        '/': {
-            'tools.sessions.on': True,
-        },
-        '/static': {
-            'tools.staticdir.on': True,
-            'tools.staticdir.dir': static_dir,
-            }
-        }
+	current_dir = os.path.dirname(os.path.abspath(__file__))
+	static_dir = os.path.join(current_dir, 'static')
+	appConfig = {
+	'/': {
+		'tools.sessions.on': True,
+	},
+	'/static': {
+		'tools.staticdir.on': True,
+		'tools.staticdir.dir': static_dir,
+		}
+	}
+	configFile = os.path.join(current_dir, 'config', 'gilamon.conf')
 
-    cherrypy.engine.subscribe('start_thread',InitializeCOM)
-    cherrypy.engine.subscribe('stop_thread', UninitializeCOM)
-    
-    cherrypy.quickstart(GilaMonRoot(), '/', config=config)
+	cherrypy.config.update(configFile)
+	cherrypy.config.update(appConfig)
+
+	app = cherrypy.tree.mount(GilaMonRoot(), '/', configFile)
+	app.merge(appConfig)
+
+	cherrypy.engine.subscribe('start_thread', InitializeCOM)
+	cherrypy.engine.subscribe('stop_thread', UninitializeCOM)
+
+	cherrypy.engine.start()
+

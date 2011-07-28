@@ -1,5 +1,4 @@
 from collections import Counter, defaultdict
-from functools import wraps
 import uuid
 
 import wql_query
@@ -23,9 +22,9 @@ class Dfsr_Query():
     Sets up the WMI connection through Wql_Query and then handles parameterized
     WQL queries through that connection.
     '''
-    server = DEFAULT_SERVER
 
-    def __init__(self):
+    def __init__(self, server):
+		self.server = server
         self.wql = Wql_Query(
             name_space = DFSR_NAME_SPACE,
             property_enums = DFSR_PROPERTY_ENUMS
@@ -45,14 +44,16 @@ class Dfsr_Query():
 
     def get_replication_status_counts(self, server_name = None):
         '''
-        Returns a dict with replication states as keys for lists of ReplicationGroupNames with
-        that status.  I'm not using a Counter object here to allow the caller to easily get
-        the list of replication groups with that status, not just the count. 
+        Returns a dict with replication states as keys for lists of
+		ReplicationGroupNames with that status.  I'm not using a Counter
+		object here to allow the caller to easily get the list of replication
+		groups with that status, not just the count.
         '''
         if server_name:
             self.server = server_name
 
-        wql_query = 'SELECT State, ReplicationGroupName FROM DfsrReplicatedFolderInfo'
+        wql_query = 'SELECT State, ReplicationGroupName FROM ' +
+            		'DfsrReplicatedFolderInfo'
         q = self.wql.make_query(self.server, wql_query)
 
         states = set([x.State for x in q])
@@ -65,7 +66,8 @@ class Dfsr_Query():
 
 
     def get_connector_status_counts(self, server_name = None):
-        wql_query = 'SELECT State, MemberName, PartnerName, Inbound, ReplicationGroupName FROM DfsrConnectionInfo'
+        wql_query = 'SELECT State, MemberName, PartnerName, ' +
+		            'Inbound, ReplicationGroupName FROM DfsrConnectionInfo'
         if server_name:
             self.server = server_name
 
@@ -76,7 +78,8 @@ class Dfsr_Query():
             counts = defaultdict(list)
             for s in states:
                 counts[s] = sorted([
-                    [conn.ReplicationGroupName, conn.MemberName, conn.PartnerName, conn.Inbound]
+                    [conn.ReplicationGroupName, conn.MemberName,
+					 conn.PartnerName, conn.Inbound]
                     for conn in q if (conn.State == s)])
             return counts
         else:
@@ -89,7 +92,8 @@ class Dfsr_Query():
         '''
         if server_name:
             self.server = server_name
-        wql_query = 'SELECT ReplicationGroupName, ReplicationGroupGuid FROM DfsrReplicationGroupConfig'
+        wql_query = 'SELECT ReplicationGroupName, ReplicationGroupGuid ' +
+		            'FROM DfsrReplicationGroupConfig'
         q = self.wql.make_query(self.server, wql_query)
         if len(q) > 0:
             return q
@@ -101,8 +105,9 @@ class Dfsr_Query():
         if server_name:
             self.server = server_name
 
-        folder_query = 'SELECT * FROM DfsrReplicatedFolderInfo WHERE ReplicationGroupGuid = "%s"' % guid
-        folders = self.wql.make_query(self.server, folder_query)
+        wql_query = 'SELECT * FROM DfsrReplicatedFolderInfo WHERE ' +
+		            'ReplicationGroupGuid = "%s"' % guid
+        folders = self.wql.make_query(self.server, wql_query)
         if len(folders) > 0:
             return folders
         else:
@@ -112,21 +117,24 @@ class Dfsr_Query():
     def get_connectors(self, guid, server_name=None):
         if server_name:
             self.server = server_name
-        wql_query = 'SELECT * FROM DfsrConnectionInfo WHERE ReplicationGroupGuid = "%s"' % guid
+        wql_query = 'SELECT * FROM DfsrConnectionInfo WHERE ' +
+		            'ReplicationGroupGuid = "%s"' % guid
         return self.wql.make_query(self.server, wql_query)
 
     @safe_guid
     def get_sync_details(self, guid, server_name=None):
         if server_name:
             self.server = server_name
-        wql_query = 'SELECT * FROM DfsrSyncInfo WHERE ConnectionGuid = "%s"' % guid
+        wql_query = 'SELECT * FROM DfsrSyncInfo WHERE ' +
+		            'ConnectionGuid = "%s"' % guid
         return self.wql.make_query(self.server, wql_query)
 
     @safe_guid
     def get_update_details(self, guid, server_name=None):
         if server_name:
             self.server = server_name
-        wql_query = 'SELECT * FROM DfsrIdUpdateInfo WHERE ConnectionGuid = "%s"' % guid
+        wql_query = 'SELECT * FROM DfsrIdUpdateInfo WHERE ' +
+		            'ConnectionGuid = "%s"' % guid
         return self.wql.make_query(self.server, wql_query)
 
 

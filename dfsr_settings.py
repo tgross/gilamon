@@ -1,6 +1,4 @@
 DFSR_NAME_SPACE = 'root\\MicrosoftDfs'
-DEFAULT_SERVER = 'phila-data2'
-SERVERS = [ 'phila-data2', 'phila-data1' ]
 
 DFSR_PROPERTY_ENUMS = {
 

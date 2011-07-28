@@ -9,11 +9,15 @@ from collections import namedtuple
 
 class Wql_Query():
 
-    def __init__(self, name_space = None, user = '', password = '', property_enums = None):
+    def __init__(self, name_space = None, user = '', password = '',
+				 property_enums = None):
         '''
-        This class will use the current security context if not passed credentials.
-        If you intend to make Wql_Query requests as part of a service, make sure that
-        the service has valid login credentials to the DFSR server or its domain.
+        This class will use the default security context if not passed
+		credentials. If you intend to make Wql_Query requests as part of a
+		service, make sure that the service has valid login credentials to the
+		DFSR server or its domain. WMI will kick an Access Denied error if
+		you're using an NT5 platform querying a more modern platform.  We need
+		to add
         '''
         if name_space:
             self.user = user
@@ -25,11 +29,15 @@ class Wql_Query():
 
     def make_query(self, server_name = None, wql_query = None):
         '''
-        Uses Kerberos authentication if available.
-        See also http://msdn.microsoft.com/en-us/library/aa393720(v=vs.85).aspx 
-        Note: this method raises an exception on invalid WQL query syntax, but
-        does not verify the safety of the operation!  The caller should not pass
-        untrusted data in the query string!
+		This method will use the default security context.  WMI will kick an
+		Access Denied error if you're using a NT5 platform querying NT6/7,
+		even if the user has rights.  I need to set impersonation to the
+		swbemlocator.
+
+		Note: this method raises an exception on invalid WQL query syntax and
+		other WMI errors, but does not verify the safety of the operation!
+		WQL doesn\'t accept parameterized queries, so the caller must not
+		pass untrusted data in the query string.
         '''
         try:
             wbem_locator = win32com.client.Dispatch('wbemscripting.swbemlocator')
@@ -47,30 +55,33 @@ class Wql_Query():
 
     def _unpack_query_results(self, raw_query_results):
         '''
-        Takes a list of ISWbemObjectSet instances and enumerates their properties,
-        replacing enums with any friendly values provided in the constructor.  Returns
-        a list of "Query_Result" named tuples.
+        Takes a list of ISWbemObjectSet instances and enumerates their
+		properties, replacing enums with any friendly values provided in the
+		constructor.  Returns a list of "Query_Result" named tuples.
         '''
         try:
             com_class_name = raw_query_results[0].Path_.Class
-            
+
             Query_Result = namedtuple(com_class_name,
-                                      [x.Name for x in raw_query_results[0].Properties_])
+                                      [x.Name for x in
+									   raw_query_results[0].Properties_])
 
             if self.PROPERTY_ENUMS and com_class_name in self.PROPERTY_ENUMS:
                 #remember to *unpack list arguments to instantiate a namedtuple!
                 return [Query_Result (
-                            *[self._get_friendly_value(com_class_name, p.Name, p.Value)
+                            *[self._get_friendly_value(com_class_name,
+													   p.Name, p.Value)
                             for p in result.Properties_])
                         for result in raw_query_results]
             else:
-                return [Query_Result(*result.Properties_) for result in raw_query_results]
+                return [Query_Result(*result.Properties_) for
+						result in raw_query_results]
 
         except AttributeError:
             raise Exception(
-                'AttributeError: Introspection failed on COM object.\
- Make sure you have compiled makepy support in PythonWin\
-(Tools -> Com -> Makepy).')
+                'AttributeError: Introspection failed on COM object. ' +
+				'Make sure you have compiled makepy support in PythonWin '+
+				'(Tools -> Com -> Makepy).')
 
 
     def _get_friendly_value(self, com_class_name, name, val):
@@ -78,13 +89,12 @@ class Wql_Query():
         Replaces the unfriendly integer index value for the COM enums with the
         appropriate friendly string value in the PROPERTY_ENUMS dictionary, and
         converts UTC time stamps to struct_time objects for the caller to format.
+		Note: WMI returns year 1601 or 9999 to indicate unfinished processes,
+		but this will return only the standard 1601.
         '''
         if 'time' in name.lower():
-            #9999 will throw a range error but has the same meaning as 1601
             if val[:4] == '9999':
                 val = '1601' + val[4:]
-            #Time values are returned by win32com in UTC format:
-            #u'20110707040008.293569-000'
             return strptime(val[:-4], '%Y%m%d%H%M%S.%f')
         else:
             try:
@@ -97,19 +107,19 @@ class Wql_Query():
 
     def _handle_com_error(self, error):
         '''
-        Verify that the error was kicked up by COM, and if so, raise a more user-friendly
-        exception with the error code + explanation.  Otherwise, raise the original for
-        handling by the caller.
+        Verify that the error was kicked up by COM, and if so, raise a more
+		user-friendly exception with the error code + explanation.  Otherwise,
+		raise the original for handling by the caller.
         '''
         try:
             error_code = error.hresult
-            #TODO: not properly catching null excepinfo values from COM?
-            if not error.excepinfo is None:
+            if error.excepinfo is None:
+				raise Error
+			else:
                 message = error.excepinfo[2]
-            else:
-                raise error
-            raise Exception('COM Error: %s [Error Code %s]' % (message, error_code))
-        except AttributeError, TypeError: 
+            raise Exception('COM Error: %s [Error Code %s]' %
+							(message, error_code))
+        except AttributeError, TypeError:
             raise error
 
-        
+
