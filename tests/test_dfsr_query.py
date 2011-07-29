@@ -3,8 +3,8 @@ from collections import namedtuple
 
 from mock import Mock, MagicMock
 
-import gilamon.dfsr_query
-from gilamon.dfsr_query import DfsrQuery, safe_guid
+import gilamon.gilamon.dfsr_query
+from gilamon.gilamon.dfsr_query import DfsrQuery, safe_guid
 
 class TestDfsr(unittest.TestCase):
 
@@ -47,3 +47,6 @@ class TestDfsr(unittest.TestCase):
     def _make_results(self, properties):
         query_result = namedtuple('query_result', properties)
         return query_result
+
+if __name__ == '__main__':
+    unittest.main()

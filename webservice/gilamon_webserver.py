@@ -8,8 +8,8 @@ from jinja2 import Environment, FileSystemLoader
 from pythoncom import CoInitialize, CoUninitialize
 import json
 
-import gilamon.dfsr_query
-from gilamon.dfsr_query import *
+import gilamon.gilamon.dfsr_query
+from gilamon.gilamon.dfsr_query import *
 
 def get_working_dir():
     if hasattr(sys, 'frozen'):
@@ -31,7 +31,7 @@ class GilaMonRoot:
         if not server:
             self.server = servers[0]
 
-        self.dfsr = Dfsr_Query(self.server)
+        self.dfsr = DfsrQuery(self.server)
 
         context = {
             'server_name': self.server,

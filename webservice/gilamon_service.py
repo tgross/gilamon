@@ -7,8 +7,8 @@ import servicemanager
 from pythoncom import CoInitialize, CoUninitialize
 import cherrypy
 
-import gilamon.dfsr_query
-from gilamon.dfsr_query import *
+import gilamon.gilamon.dfsr_query
+from gilamon.gilamon.dfsr_query import *
 
 class GilaMonService (win32serviceutil.ServiceFramework):
     '''
