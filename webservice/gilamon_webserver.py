@@ -8,7 +8,8 @@ from jinja2 import Environment, FileSystemLoader
 from pythoncom import CoInitialize, CoUninitialize
 import json
 
-from dfsr_query import *
+import gilamon.dfsr_query
+from gilamon.dfsr_query import *
 
 def get_working_dir():
     if hasattr(sys, 'frozen'):
@@ -52,7 +53,7 @@ class GilaMonRoot:
     @tools.json_out()
     def get_server_status(self, server=None):
         server = self.check_session_server(server)
-        current_state = self.dfsr.get_Dfsr_state(server)
+        current_state = self.dfsr.get_dfsr_state(server)
         return current_state
 
     @cherrypy.expose
@@ -111,8 +112,10 @@ class GilaMonRoot:
     @cherrypy.expose
     def get_replication_group_list(self, server=None):
         server = self.check_session_server(server)
-        replication_groups = sorted(self.dfsr.get_all_replication_groups(server),
-                                    key=lambda x: str(x.ReplicationGroupName))
+        replication_groups = sorted(
+            self.dfsr.get_all_replication_groups(server),
+            key=lambda x: str(x.ReplicationGroupName)
+            )
 
         context = { 'replication_groups': replication_groups }
         t = env.get_template('rg_list.html')
@@ -169,7 +172,8 @@ class GilaMonRoot:
         context = {
             'ConnectionGuid': sync.ConnectionGuid,
             'Title': self.get_connector_direction(
-				sync.MemberName, sync.PartnerName, sync.Inbound),
+				sync.MemberName,
+                                sync.PartnerName, sync.Inbound),
             'MemberGuid': sync.MemberGuid,
             'PartnerGuid': sync.PartnerGuid,
             'ReplicationGroupGuid': sync.ReplicationGroupGuid,
@@ -234,8 +238,8 @@ class GilaMonRoot:
 
 '''
 The cherrypy web server is multithreaded.  In order to use COM objects returned
-by win32com.client.GetObject in that environment, we need to set up COM access to
-the threads.
+by win32com.client.GetObject in that environment, we need to set up COM access
+to the threads.
 See also http://www.cherrypy.org/wiki/UsingCOMObjects
 '''
 

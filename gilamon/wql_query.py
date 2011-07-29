@@ -1,24 +1,26 @@
 from time import strptime
-
-import win32com
-from win32com import client
-win32com.client.gencache.is_readonly = False
-win32com.client.gencache.GetGeneratePath()
-
 from collections import namedtuple
 
-class Wql_Query():
+import win32com
+import win32com.client
+
+
+class WqlQuery():
 
     def __init__(self, name_space = None, user = '', password = '',
 				 property_enums = None):
         '''
         This class will use the default security context if not passed
-	credentials. If you intend to make Wql_Query requests as part of a
+	credentials. If you intend to make WqlQuery requests as part of a
 	service, make sure that the service has valid login credentials to the
 	DFSR server or its domain. WMI will kick an Access Denied error if
 	you're using an NT5 platform querying a more modern platform.  We need
 	to add
         '''
+        win32com.client.gencache.is_readonly = False
+        win32com.client.gencache.GetGeneratePath()
+        self.wbem_locator = win32com.client.Dispatch('wbemscripting.swbemlocator')
+
         if name_space:
             self.user = user
             self.password = password
@@ -40,8 +42,7 @@ class Wql_Query():
 	pass untrusted data in the query string.
         '''
         try:
-            wbem_locator = win32com.client.Dispatch('wbemscripting.swbemlocator')
-            remote_service = wbem_locator.ConnectServer(
+            remote_service = self.wbem_locator.ConnectServer(
                 server_name, self.name_space, self.user, self.password
                 )
             query_results = remote_service.ExecQuery(wql_query)
@@ -57,27 +58,27 @@ class Wql_Query():
         '''
         Takes a list of ISWbemObjectSet instances and enumerates their
 	properties, replacing enums with any friendly values provided in the
-	constructor.  Returns a list of "Query_Result" named tuples.
+	constructor.  Returns a list of "QueryResult" named tuples.
         '''
         try:
             com_class_name = raw_query_results[0].Path_.Class
 
-            Query_Result = namedtuple(com_class_name,
+            QueryResult = namedtuple(com_class_name,
                                       [x.Name for x in
                                        raw_query_results[0].Properties_])
 
             if self.property_enums and com_class_name in self.property_enums:
                 #remember to *unpack list arguments to instantiate a namedtuple!
-                return [Query_Result (
+                return [QueryResult (
                             *[self._get_friendly_value(com_class_name,
                                                        p.Name, p.Value)
                             for p in result.Properties_])
                         for result in raw_query_results]
             else:
-                return [Query_Result(*result.Properties_) for
+                return [QueryResult(*[p.Value for p in result.Properties_]) for
                         result in raw_query_results]
 
-        except AttributeError:
+        except AttributeError as e:
             raise Exception(
                 'AttributeError: Introspection failed on COM object. ' +
 		'Make sure you have compiled makepy support in PythonWin '+
@@ -95,7 +96,7 @@ class Wql_Query():
         if 'time' in name.lower():
             if val[:4] == '9999':
                 val = '1601' + val[4:]
-            return strptime(val[:-4], '%Y%m%d%H%M%S.%f')
+            return strptime(val[:20], '%Y%m%d%H%M%S.%f')
         else:
             try:
                 valid_values = self.property_enums[com_class_name][name][1]

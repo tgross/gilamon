@@ -2,9 +2,8 @@ from collections import Counter, defaultdict
 import uuid
 
 import wql_query
-from wql_query import Wql_Query
-
-from dfsr_settings import *
+from wql_query import WqlQuery
+import dfsr_settings
 
 
 def safe_guid(function):
@@ -17,7 +16,7 @@ def safe_guid(function):
     return _function
 
 
-class Dfsr_Query():
+class DfsrQuery():
     '''
     Sets up the WMI connection through Wql_Query and then handles parameterized
     WQL queries through that connection.
@@ -25,12 +24,12 @@ class Dfsr_Query():
 
     def __init__(self, server):
 	self.server = server
-        self.wql = Wql_Query(
-            name_space = DFSR_NAME_SPACE,
-            property_enums = DFSR_PROPERTY_ENUMS
+        self.wql = WqlQuery(
+            name_space = dfsr_settings.DFSR_NAME_SPACE,
+            property_enums = dfsr_settings.DFSR_PROPERTY_ENUMS
             )
 
-    def get_Dfsr_state(self, server_name = None):
+    def get_dfsr_state(self, server_name = None):
         if server_name:
             self.server = server_name
 
@@ -72,7 +71,6 @@ class Dfsr_Query():
             self.server = server_name
 
         q = self.wql.make_query(self.server, wql_query)
-
         if len(q) > 0:
             states = set([x.State for x in q])
             counts = defaultdict(list)
