@@ -1,15 +1,15 @@
 import unittest
 from collections import namedtuple
 
-from mock import Mock, MagicMock
+from mock import Mock
 
 import gilamon.gilamon.dfsr_query
-from gilamon.gilamon.dfsr_query import DfsrQuery, safe_guid
+
 
 class TestDfsr(unittest.TestCase):
 
     def setUp(self):
-        self.dfsr = DfsrQuery('servername')
+        self.dfsr = dfsr_query.DfsrQuery('servername')
         self.dfsr.wql = Mock()
         self.query_result = self.dfsr.wql.make_query
 
@@ -23,7 +23,7 @@ class TestDfsr(unittest.TestCase):
         state = self.dfsr.get_dfsr_state()
         self.assertEqual(state, 'STATE')
 
-    def test_get_Dfsr_state_down(self):
+    def test_get_dfsr_state_down(self):
         self.query_result.return_value = []
         state = self.dfsr.get_dfsr_state()
         self.assertEqual(state, 'Service offline')

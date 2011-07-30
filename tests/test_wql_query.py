@@ -6,12 +6,12 @@ from collections import namedtuple
 from mock import Mock, MagicMock
 
 import gilamon.gilamon.wql_query
-from gilamon.gilamon.wql_query import WqlQuery
+
 
 class TestWql(unittest.TestCase):
 
     def setUp(self):
-        self.wql = WqlQuery('namespace')
+        self.wql = wql_query.WqlQuery('namespace')
         mock_service = Mock()
         mock_service.ExecQuery.return_value = []
         mock_locator = Mock()

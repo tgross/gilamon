@@ -8,7 +8,8 @@ from pythoncom import CoInitialize, CoUninitialize
 import cherrypy
 
 import gilamon.gilamon.dfsr_query
-from gilamon.gilamon.dfsr_query import *
+import gilamon.webserver
+
 
 class GilaMonService (win32serviceutil.ServiceFramework):
     '''
@@ -47,7 +48,7 @@ class GilaMonService (win32serviceutil.ServiceFramework):
         cherrypy.config.update(configFile)
         cherrypy.config.update(appConfig)
 
-        app = cherrypy.tree.mount(gila_mon.GilaMonRoot(), '/', configFile)
+        app = cherrypy.tree.mount(webserver.GilaMonRoot(), '/', configFile)
         app.merge(appConfig)
 
         cherrypy.engine.subscribe('start_thread', InitializeCOM)
@@ -77,6 +78,4 @@ def UninitializeCOM(threadIndex):
 
 if __name__ == '__main__':
     win32serviceutil.HandleCommandLine(GilaMonService)
-
-
 

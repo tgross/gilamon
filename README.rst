@@ -167,6 +167,7 @@ The following are features I'd like to add in the future:
 .. _`CherryPy`: http://www.cherrypy.org/
 .. _`cherrypy`: http://www.cherrypy.org/
 .. _`jinja2`: http://jinja.pocoo.org/docs/
+.. _`mock`: http://pypi.python.org/pypi/mock
 
 .. _`download the Windows executables`: https://bitbucket.org/tgross/gilamon/downloads
 
