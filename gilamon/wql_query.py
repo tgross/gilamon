@@ -4,7 +4,8 @@ import sys
 from time import strptime
 from collections import namedtuple
 
-import win32com.client
+import win32com
+import win32com.client as client
 
 
 def handle_com_error(error):

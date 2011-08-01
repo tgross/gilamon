@@ -5,7 +5,7 @@ from collections import namedtuple
 
 from mock import Mock, MagicMock
 
-import gilamon.gilamon.wql_query
+import gilamon.gilamon.wql_query as wql_query
 
 
 class TestWql(unittest.TestCase):
