@@ -54,16 +54,17 @@ additional_files = [
     ('config',[]),
     ('templates',[]),
     ('static',[]),
+    ('licenses',[]),
     ]
 
 setup (
-    version = '0.8.0',
+    version = '0.8.1',
     description = 'GilaMon DFSR Monitor',
     name = 'GilaMon',
     author = 'Tim Gross',
     author_email = 'gross.timothy@gmail.com',
     url = 'https://bitbucket.org/tgross/gilamon',
     options = { 'py2exe': py2exe_opts },
-    service = ['gilamon_service'],
+    service = ['gilamon'],
     data_files = additional_files,
 )

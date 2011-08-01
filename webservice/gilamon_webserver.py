@@ -39,6 +39,7 @@ class GilaMonRoot:
         '''
         self.server = server = cherrypy.session.get('server')
         servers = cherrypy.request.app.config['dfsr']['servers']
+        site_title = cherrypy.request.app.config['dfsr']['title']
         if not server:
             self.server = servers[0]
 
@@ -46,7 +47,8 @@ class GilaMonRoot:
 
         context = {
             'server_name': self.server,
-            'servers_avail': servers}
+            'servers_avail': servers,
+            'site_title': site_title}
         template = env.get_template('index.html')
         return template.render(context)
 
