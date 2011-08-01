@@ -8,7 +8,7 @@ from pythoncom import CoInitialize, CoUninitialize
 import cherrypy
 
 import gilamon.gilamon.dfsr_query
-import gilamon.webserver
+import gilamon_webserver
 
 
 class GilaMonService (win32serviceutil.ServiceFramework):
