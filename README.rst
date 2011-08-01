@@ -66,6 +66,8 @@ making any changes to the code, you can just `download the Windows executables`_
   * Open a command line into the ``gilamon`` directory.
   * ``gilamon_service.exe -install``
 
+``pywin32``, ``cherrypy`` and ``jinja2`` are bundled in the executable.  See the ``licenses`` folder in the zip file for the licenses for these libraries.
+
 
 **Installing as a Python Service or Script [Recommended]**
 __________________________________________________________
@@ -119,6 +121,8 @@ Following are what I suspect might be Frequently Asked Questions about installin
 __________________________________________________
 Check the Event Log.  It may show you that it's a configuration issue.  Make sure the IP and port number are valid.  If that's not it, please contact me or file an issue so that we can try to fix the problem (include the text of the event, if possible).
 
+Also, make sure that you're Windows environment variables PYTHONPATH and PATH have been set.
+
 **The GilaMon service installs and starts, but I get "Internet Explorer cannot view this page" on the web page.**
 _________________________________________________________________________________________________________________
 Make sure that the Windows firewall on the server running the web service allows the port you've listed in the ``gilamon.conf``.
@@ -141,7 +145,7 @@ Contributing
 
 GilaMon is an open source project managed using `Mercurial`_ version control. The repository is hosted on `Bitbucket`_, so contributing is simple: fork the project and commit back your changes. Please keep in mind the following about contributing:
 
-  * Contributed code must be written in the existing style. Please follow `PEP 8`_.
+  * Contributed code must be written in the existing style. Please follow `PEP 8`_ and check out your code with `pylint`_.
   * Run the tests before committing your changes. If your changes break the build, they won't be accepted.
   * If you're adding new functionality, you must include basic tests and documentation.
 
@@ -179,5 +183,6 @@ The following are features I'd like to add in the future:
 
 .. _`Bitbucket`: http://bitbucket.org/tgross/gilamon/
 .. _`PEP 8`: http://www.python.org/dev/peps/pep-0008/
+.. _`pylint`: http://pypi.python.org/pypi/pylint
 .. _`send me a message through Bitbucket`: https://bitbucket.org/account/notifications/send/?receiver=tgross
 .. _`issue tracker`: https://bitbucket.org/tgross/gilamon/issues
