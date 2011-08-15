@@ -6,7 +6,7 @@ GilaMon is a simple monitoring tool for Windows `Distributed File System Replica
 
 It is *also* a set of tools written in `Python`_ that can be used by Windows system administrators who are comfortable with scripting to monitor DFSR or other Windows services through the `Windows Management Instrumentation`_ API.
 
-GilaMon is `BSD licensed`_ and is designed to have cleanly separated architecture that will hopefully make hacking on the code easy even for novice programmers and/or system administrators who want to extend it.  The package described here includes an example implementation of a `CherryPy`_ web service and the web page that an administrator can use to view the current status of DFSR on their network.  You can use GilaMon's backend to monitor DFSR or any other WMI namespace without using the web service.
+GilaMon is `BSD licensed`_ and is designed to have cleanly separated architecture that will hopefully make hacking on the code easy even for novice programmers and/or system administrators who want to extend it.  The package described here includes an example implementation of a `CherryPy`_ web service and the web page that an administrator can use to view the current status of DFSR on their network.  You can use GilaMon's backend to monitor DFSR or any other WMI namespace without using the web service, by calling it as a script.
 
 The backend for GilaMon makes WQL queries against your servers, performs introspection on the COM objects returned by WMI, and then gives you easy-to-comprehend tuples of key-value pairs.  The keys will always be the same as the named properties of WMI objects described in Microsoft's documentation, and the values will be friendly types such as strings, ints, and Python datetime objects.  For example, if you're making a query against the `DfsrReplicatedFolderInfo`_ class, you can check the documentation on MSDN to see that to find out the current size of the Staging folder, you should look at the ``CurrentStageSizeInMb`` property.
 
@@ -24,7 +24,7 @@ We decided we needed a dead-simple monitoring tool to tell us what the current s
 Dependencies
 ============
 
-GilaMon relies on COM and is currently supported only on Windows, and can be run from Windows XP, Vista, 7, Server 2008, and Server 2008r2.  Currently you need to run GilaMon from the same "generation" or newer of Windows as the DFSR server (ex. if you're running DFSR on Server 2008r2, you need to run GilaMon from Windows Vista, Windows 7, or Server 2008r).  This is next on the TODO list.  The backend for GilaMon requires:
+GilaMon relies on COM and is currently supported only on Windows, and can be run from Windows XP, Vista, 7, Server 2008, and Server 2008r2.  The backend for GilaMon requires:
 
   * `Python`_ (Tested with 2.7)
   * `pywin32`_ (Tested with Build216 and newer)
@@ -97,7 +97,7 @@ If you want to run GilaMon as a Windows service, whether from the executable or 
   * Point a web browser at the address and port you put in the ``gilamon.conf`` file.
 
 If you want to run GilaMon with the web service as a Python script:
-  * Use a text editor to change ``/gilamon/config/gilamon.conf`` to the port and address you want your service to list on. Also add the host names of your DFSR servers under the ``[dfsr]`` section.  * Use a text editor to change 
+  * Use a text editor to change ``/gilamon/config/gilamon.conf`` to the port and address you want your service to list on. Also add the host names of your DFSR servers under the ``[dfsr]`` section.  * Use a text editor to change
   * Go the command line and navigate to the ``gilamon`` directory.
   * ``python gila_mon.py``
   * Point a web browser at the address and port you put in the ``gilamon.conf`` file.
@@ -105,7 +105,7 @@ If you want to run GilaMon with the web service as a Python script:
 The ``gilamon.conf`` file uses Python syntax.  If you don't know Python, that's okay.  Just use the pattern that's been provided.  The IP address and server names have to be surrounded by quotes (either single or double is okay as long as they match), and the port number can't be in quotes.  Use forward slashes for the log file path, or double back-slashes.
 
 
-If you want to run GilaMon as a script without the web service, you'll want to open Python interpreter and either ``import dfsr_query`` or ``import wql_query`` to get the modules you'll need for your purposes.  See the source code for documentation for these calls (``TODO:`` add this information to Wiki).
+If you want to run GilaMon as a script without the web service, you'll want to open Python interpreter and either ``import dfsr_query`` or ``import wmi_client`` to get the modules you'll need for your purposes.  See the source code for documentation for these calls (``TODO:`` add this information to Wiki).
 
 Support
 =======
@@ -132,10 +132,6 @@ ________________________________________________________________________________
 Check the log file found at ``C:/Windows/temp/gilamon.log`` (if you didn't change this path in your config).  You may see an Access Denied error in the stack trace.  Make sure the user that you're using for the GilaMon service has permissions to make WMI queries against the DFSR server (Server Manager -> Control -> WMI Control).
 
 **Yeah, I tried that already.**
-_______________________________
-Currently, GilaMon uses the default WMI security context for passing credentials from the machine running GilaMon to the DFSR server it's querying.  But Windows operating systems with UAC (Vista, 7, Server 2008r2) have stricter controls by default.  So if you run GilaMon from an older OS and query a newer OS, you'll get an Access Denied error. This is next on my TODO list to fix.
-
-**Nope, still doesn't work.**
 _____________________________
 Sorry about that!  Please use the `issue tracker`_ and file an issue so that I can fix the problem and improve GilaMon for everyone.  Please send along any relevant log information.
 
@@ -154,6 +150,7 @@ Future Features
 ===============
 
 The following are features I'd like to add in the future:
+  * A user-friendly command-line tool for making on-the-fly WQL queries.
   * ActiveDirectory-based authentication to the web page and general security improvements that would make it suitable to run on an Internet-facing page.
   * Set up and register for ``easy_install`` installation.
   * Support for running from Linux.  There's a Samba-based library for WMI, but it was more trouble that it was worth at the time of release.
