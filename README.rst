@@ -132,7 +132,7 @@ ________________________________________________________________________________
 Check the log file found at ``C:/Windows/temp/gilamon.log`` (if you didn't change this path in your config).  You may see an Access Denied error in the stack trace.  Make sure the user that you're using for the GilaMon service has permissions to make WMI queries against the DFSR server (Server Manager -> Control -> WMI Control).
 
 **Yeah, I tried that already.**
-_____________________________
+_______________________________
 Sorry about that!  Please use the `issue tracker`_ and file an issue so that I can fix the problem and improve GilaMon for everyone.  Please send along any relevant log information.
 
 
