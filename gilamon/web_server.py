@@ -1,4 +1,4 @@
-''' gilamon_webserver.py '''
+''' web_server.py '''
 
 import sys
 import os.path
@@ -9,7 +9,7 @@ from cherrypy import tools
 from jinja2 import Environment, FileSystemLoader
 from pythoncom import CoInitialize, CoUninitialize
 
-import gilamon.gilamon.dfsr_query
+import dfsr_query
 
 
 def get_working_dir():

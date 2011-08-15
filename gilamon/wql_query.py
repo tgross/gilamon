@@ -31,8 +31,7 @@ class WqlQuery():
     This class will use the default security context if not passed
     credentials. If you intend to make WqlQuery requests as part of a
     service, make sure that the service has valid login credentials to the
-    DFSR server or its domain. WMI will kick an Access Denied error if
-    you're using an NT5 platform querying a more modern platform.
+    DFSR server or its domain.
     '''
 
     def __init__(self, name_space=None, user='', password='',
@@ -51,11 +50,6 @@ class WqlQuery():
 
     def make_query(self, server_name=None, wql_query=None):
         '''
-        This method will use the default security context.  WMI will kick an
-        Access Denied error if you're using a NT5 platform querying NT6/7,
-        even if the user has rights.  I need to set impersonation to the
-        swbemlocator.
-
         Note: this method raises an exception on invalid WQL query syntax and
         other WMI errors, but does not verify the safety of the operation!
         WQL doesn\'t accept parameterized queries, so the caller must not
@@ -64,6 +58,7 @@ class WqlQuery():
         try:
             remote_service = self.wbem_locator.ConnectServer(
                 server_name, self.name_space, self.user, self.password)
+            remote_service.Security_.ImpersonationLevel = 3
             query_results = remote_service.ExecQuery(wql_query)
             if len(query_results) < 1:
                 return []

@@ -7,8 +7,8 @@ import servicemanager
 from pythoncom import CoInitialize, CoUninitialize
 import cherrypy
 
-import gilamon.gilamon.dfsr_query
-import gilamon_webserver
+import dfsr_query
+import web_server
 
 
 class GilaMonService (win32serviceutil.ServiceFramework):
@@ -24,7 +24,7 @@ class GilaMonService (win32serviceutil.ServiceFramework):
     _svc_description_ = "DFSR Monitoring Service"
 
     def SvcDoRun(self):
-        current_dir = gila_mon.get_working_dir()
+        current_dir = web_server.get_working_dir()
 
         # You should include a log.error_file value in the config file
         configFile = os.path.join(current_dir, 'config', 'gilamon.conf')
@@ -48,7 +48,7 @@ class GilaMonService (win32serviceutil.ServiceFramework):
         cherrypy.config.update(configFile)
         cherrypy.config.update(appConfig)
 
-        app = cherrypy.tree.mount(webserver.GilaMonRoot(), '/', configFile)
+        app = cherrypy.tree.mount(web_server.GilaMonRoot(), '/', configFile)
         app.merge(appConfig)
 
         cherrypy.engine.subscribe('start_thread', InitializeCOM)

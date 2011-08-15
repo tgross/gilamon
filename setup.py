@@ -1,6 +1,7 @@
 from distutils.core import setup
 import py2exe
 import platform
+from datetime import datetime
 
 # Leave out any package not strictly necessary.
 # TODO: There are almost certainly some more that can be removed.
@@ -58,7 +59,7 @@ additional_files = [
     ]
 
 setup (
-    version = '0.8.1',
+    version = '0.8.2' + datetime.now().strftime('%y%j.%H%M%S')
     description = 'GilaMon DFSR Monitor',
     name = 'GilaMon',
     author = 'Tim Gross',

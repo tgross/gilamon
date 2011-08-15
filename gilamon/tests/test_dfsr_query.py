@@ -3,7 +3,7 @@ from collections import namedtuple
 
 from mock import Mock
 
-import gilamon.gilamon.dfsr_query as dfsr_query
+from gilamon import dfsr_query
 
 
 class TestDfsr(unittest.TestCase):
