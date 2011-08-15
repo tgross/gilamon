@@ -3,7 +3,7 @@
 from collections import defaultdict
 import uuid
 
-import wql_query
+from wmi_client import WmiClient
 import dfsr_settings
 
 
@@ -27,7 +27,7 @@ class DfsrQuery():
 
     def __init__(self, server):
         self.server = server
-        self.wql = wql_query.WqlQuery(
+        self.wmi = WmiClient(
             name_space=dfsr_settings.DFSR_NAME_SPACE,
             property_enums=dfsr_settings.DFSR_PROPERTY_ENUMS)
 
@@ -39,7 +39,7 @@ class DfsrQuery():
             self.server = server_name
 
         wql = 'SELECT State FROM DfsrInfo'
-        query_results = self.wql.make_query(self.server, wql)
+        query_results = self.wmi.make_query(self.server, wql)
 
         if len(query_results) > 0:
             return query_results[0].State
@@ -59,7 +59,7 @@ class DfsrQuery():
 
         wql = ('SELECT State, ReplicationGroupName FROM ' +
                     'DfsrReplicatedFolderInfo')
-        results = self.wql.make_query(self.server, wql)
+        results = self.wmi.make_query(self.server, wql)
 
         states = set([x.State for x in results])
         counts = defaultdict(list)
@@ -79,7 +79,7 @@ class DfsrQuery():
         if server_name:
             self.server = server_name
 
-        results = self.wql.make_query(self.server, wql)
+        results = self.wmi.make_query(self.server, wql)
         if len(results) > 0:
             states = set([x.State for x in results])
             counts = defaultdict(list)
@@ -101,7 +101,7 @@ class DfsrQuery():
             self.server = server_name
         wql = ('SELECT ReplicationGroupName, ReplicationGroupGuid ' +
                     'FROM DfsrReplicationGroupConfig')
-        results = self.wql.make_query(self.server, wql)
+        results = self.wmi.make_query(self.server, wql)
         if len(results) > 0:
             return results
         else:
@@ -117,7 +117,7 @@ class DfsrQuery():
 
         wql = ('SELECT * FROM DfsrReplicatedFolderInfo WHERE ' +
                     'ReplicationGroupGuid = "%s"') % guid
-        folders = self.wql.make_query(self.server, wql)
+        folders = self.wmi.make_query(self.server, wql)
         if len(folders) > 0:
             return folders
         else:
@@ -133,7 +133,7 @@ class DfsrQuery():
             self.server = server_name
         wql = ('SELECT * FROM DfsrConnectionInfo WHERE ' +
                     'ReplicationGroupGuid = "%s"') % guid
-        return self.wql.make_query(self.server, wql)
+        return self.wmi.make_query(self.server, wql)
 
     @safe_guid
     def get_sync_details(self, guid, server_name=None):
@@ -144,7 +144,7 @@ class DfsrQuery():
             self.server = server_name
         wql = ('SELECT * FROM DfsrSyncInfo WHERE ' +
                     'ConnectionGuid = "%s"') % guid
-        return self.wql.make_query(self.server, wql)
+        return self.wmi.make_query(self.server, wql)
 
     @safe_guid
     def get_update_details(self, guid, server_name=None):
@@ -155,4 +155,4 @@ class DfsrQuery():
             self.server = server_name
         wql = ('SELECT * FROM DfsrIdUpdateInfo WHERE ' +
                     'ConnectionGuid = "%s"') % guid
-        return self.wql.make_query(self.server, wql)
+        return self.wmi.make_query(self.server, wql)

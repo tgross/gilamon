@@ -5,80 +5,80 @@ from collections import namedtuple
 
 from mock import Mock, MagicMock
 
-from gilamon import wql_query
+from gilamon.wmi_client import WmiClient
 
 
 class TestWql(unittest.TestCase):
 
     def setUp(self):
-        self.wql = wql_query.WqlQuery('namespace')
+        self.wmi = WmiClient('namespace')
         mock_service = Mock()
         mock_service.ExecQuery.return_value = []
         mock_locator = Mock()
         mock_locator.ConnectServer.return_value = mock_service
-        self.wql.wbem_locator = mock_locator
+        self.wmi.wbem_locator = mock_locator
 
-        self.wql.property_enums = {
+        self.wmi.property_enums = {
             'someclass': { 'a': ( 0, [ 'Test0', 'Test1'])}
             }
 
     def test_make_query_empty(self):
-        qr = self.wql.make_query()
+        qr = self.wmi.make_query()
         self.assertEqual(qr, [])
 
     def test_make_query_invalid_return(self):
-        self.wql.wbem_locator.mock_service.ExecQuery.return_value = ['INVALID']
-        qr = self.wql.make_query()
+        self.wmi.wbem_locator.mock_service.ExecQuery.return_value = ['INVALID']
+        qr = self.wmi.make_query()
         self.assertEqual(qr, [])
 
     def test_make_query_com_error(self):
-        self.wql.wbem_locator.mock_service.ExecQuery.side_effect = Exception(
+        self.wmi.wbem_locator.mock_service.ExecQuery.side_effect = Exception(
             'BOOM')
-        self.assertRaises(Exception, self.wql.make_query())
+        self.assertRaises(Exception, self.wmi.make_query())
 
     def test_unpack_and_get_friendly(self):
 
         mock_results = [ self._make_mock_result() ]
 
-        unpacked = self.wql._unpack_query_results(mock_results)[0]
+        unpacked = self.wmi._unpack_query_results(mock_results)[0]
         self.assertEqual(unpacked.a, 'Test0')
 
     def test_unpack_and_no_friendly(self):
         mock_results = [ self._make_mock_result() ]
-        unpacked = self.wql._unpack_query_results(mock_results)[0]
+        unpacked = self.wmi._unpack_query_results(mock_results)[0]
         self.assertEqual(unpacked.a, 'Test0')
 
     def test_unpack_and_get_exception(self):
         mock_results = [ self._make_mock_result() ]
         mock_results[0].side_effect = Exception('ERROR')
         self.assertRaises(Exception,
-                          self.wql._unpack_query_results(mock_results))
+                          self.wmi._unpack_query_results(mock_results))
 
     def test_get_friendly_value_from_enum(self):
-        friendly = self.wql._get_friendly_value('someclass', 'a', 1)
+        friendly = self.wmi._get_friendly_value('someclass', 'a', 1)
         self.assertEqual(friendly, 'Test1')
 
     def test_get_friendly_value_not_from_enum(self):
-        friendly = self.wql._get_friendly_value('someclass', 'b', 1)
+        friendly = self.wmi._get_friendly_value('someclass', 'b', 1)
         self.assertEqual(friendly, 1)
 
     def test_get_friendly_value_bad_index(self):
-        friendly = self.wql._get_friendly_value('someclass', 'a', 6)
+        friendly = self.wmi._get_friendly_value('someclass', 'a', 6)
         self.assertEqual(friendly, 6)
 
     def test_get_friendly_value_time(self):
-        friendly = self.wql._get_friendly_value(
+        friendly = self.wmi._get_friendly_value(
             'someclass', 'time', '20110909010101.12341244')
         self.assertEqual(friendly.tm_hour, 1)
 
     def test_get_friendly_value_invalid_time(self):
         self.assertRaises(ValueError,
-                          self.wql._get_friendly_value,
+                          self.wmi._get_friendly_value,
                           'someclass','time','2011'
                           )
 
     def test_get_friendly_value_unfinished_time(self):
-        friendly = self.wql._get_friendly_value(
+        friendly = self.wmi._get_friendly_value(
             'someclass', 'time', '99990909010101.12341244')
         self.assertEqual(friendly.tm_year, 1601)
 

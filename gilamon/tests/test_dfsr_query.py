@@ -3,15 +3,14 @@ from collections import namedtuple
 
 from mock import Mock
 
-from gilamon import dfsr_query
-
+from gilamon.dfsr_query import DfsrQuery
 
 class TestDfsr(unittest.TestCase):
 
     def setUp(self):
-        self.dfsr = dfsr_query.DfsrQuery('servername')
-        self.dfsr.wql = Mock()
-        self.query_result = self.dfsr.wql.make_query
+        self.dfsr = DfsrQuery('servername')
+        self.dfsr.wmi = Mock()
+        self.query_result = self.dfsr.wmi.make_query
 
     def tearDown(self):
         pass
@@ -40,7 +39,7 @@ class TestDfsr(unittest.TestCase):
         self.assertEqual(results['State2'], ['Name3'])
 
     def test_get_replication_status_counts_invalid(self):
-        self.dfsr.wql.make_query.return_value = []
+        self.dfsr.wmi.make_query.return_value = []
         results = self.dfsr.get_replication_status_counts()
         self.assertEqual(len(results), 0)
 

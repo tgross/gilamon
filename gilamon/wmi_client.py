@@ -5,31 +5,14 @@ from time import strptime
 from collections import namedtuple
 
 import win32com
-import win32com.client as client
+from win32com import client
+from pywintypes import com_error
 
 
-def handle_com_error(error):
-    '''
-    Verify that the error was kicked up by COM, and if so, raise a more
-    user-friendly exception with the error code + explanation.  Otherwise,
-    raise the original for handling by the caller.
-    '''
-    try:
-        error_code = error.hresult
-        if error.excepinfo is None:
-            raise error
-        else:
-            message = error.excepinfo[2]
-        raise Exception('COM Error: %s [Error Code %s]' %
-                        (message, error_code))
-    except (AttributeError, TypeError):
-        raise error
-
-
-class WqlQuery():
+class WmiClient():
     '''
     This class will use the default security context if not passed
-    credentials. If you intend to make WqlQuery requests as part of a
+    credentials. If you intend to make WQL query requests as part of a
     service, make sure that the service has valid login credentials to the
     DFSR server or its domain.
     '''
@@ -46,7 +29,7 @@ class WqlQuery():
             self.name_space = name_space
             self.property_enums = property_enums
         else:
-            raise Exception('WMI namespace not provided.')
+            raise ArgumentError('WMI namespace not provided.')
 
     def make_query(self, server_name=None, wql_query=None):
         '''
@@ -64,8 +47,8 @@ class WqlQuery():
                 return []
 
             return self._unpack_query_results(query_results)
-        except:
-            handle_com_error(sys.exc_info())
+        except pywintypes.com_error, e:
+            raise WmiError(e)
 
     def _unpack_query_results(self, raw_query_results):
         '''
@@ -93,10 +76,7 @@ class WqlQuery():
                     result in raw_query_results]
 
         except AttributeError:
-            raise Exception(
-                'AttributeError: Introspection failed on COM object. ' +
-                'Make sure you have compiled makepy support in PythonWin ' +
-                '(Tools -> Com -> Makepy).')
+            raise Exception('AttributeError: Introspection failed on COM object.')
 
     def _get_friendly_value(self, com_class_name, name, val):
         '''
@@ -117,3 +97,23 @@ class WqlQuery():
                 return valid_values[idx]
             except:
                 return val
+
+class ArgumentError(Exception):
+    '''Exception raised for invalid arguments.'''
+
+    def __init__(self, msg):
+#       self.expr = expr
+        self.msg = msg
+
+class WmiError(Exception):
+    '''Exception raised for errors in the WMI service or connection.'''
+
+    def __init__(self, com_error):
+        self.com_error = com_error
+        if com_error.__dict__.has_attr('hresult'):
+            hresult = com_error.hresult
+        if com_error.__dict__.has_attr('excepinfo'):
+            msg = '; '.join(
+                filter(lambda e:
+                           isinstance(e, unicode), com_error.excepinfo))
+        self.msg = 'COM Error [%d]: %s' % (hresult or '', msg or '')
