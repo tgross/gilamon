@@ -75,8 +75,9 @@ class WmiClient():
                     *[p.Value for p in result.Properties_]) for
                     result in raw_query_results]
 
-        except AttributeError:
-            raise Exception('AttributeError: Introspection failed on COM object.')
+        except AttributeError, e:
+            raise WmiError(
+                e, 'AttributeError: Introspection failed on COM object.')
 
     def _get_friendly_value(self, com_class_name, name, val):
         '''
@@ -101,19 +102,19 @@ class WmiClient():
 class ArgumentError(Exception):
     '''Exception raised for invalid arguments.'''
 
-    def __init__(self, msg):
-#       self.expr = expr
+    def __init__(self, msg, expr=None):
         self.msg = msg
+        self.expr = expr
 
 class WmiError(Exception):
     '''Exception raised for errors in the WMI service or connection.'''
 
-    def __init__(self, com_error):
-        self.com_error = com_error
-        if com_error.__dict__.has_attr('hresult'):
-            hresult = com_error.hresult
-        if com_error.__dict__.has_attr('excepinfo'):
-            msg = '; '.join(
+    def __init__(self, error, msg=''):
+        self.error = error
+        if error.__dict__.has_attr('hresult'):
+            hresult = error.hresult
+        if error.__dict__.has_attr('excepinfo'):
+            msg = msg + '; '.join(
                 filter(lambda e:
-                           isinstance(e, unicode), com_error.excepinfo))
+                           isinstance(e, unicode), error.excepinfo))
         self.msg = 'COM Error [%d]: %s' % (hresult or '', msg or '')

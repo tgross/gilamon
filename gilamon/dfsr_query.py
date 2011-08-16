@@ -3,7 +3,7 @@
 from collections import defaultdict
 import uuid
 
-from wmi_client import WmiClient
+from wmi_client import WmiClient, ArgumentError
 import dfsr_settings
 
 
@@ -15,14 +15,21 @@ def safe_guid(function):
             uuid.UUID(args[1])
             return function(*args, **kwargs)
         except:
-            raise
+            raise ArgumentError('Invalid GUID',' '.join(args))
     return _function
 
 
 class DfsrQuery():
     '''
-    Sets up the WMI connection through Wql_Query and then handles
+    Sets up the WMI connection through WmiClient and then handles
     parameterized WQL queries through that connection.
+
+    DfsrQuery currently allows exceptions raised by WmiClient to
+    bubble up to the caller.  There isn't much we can do to recover
+    from them, because they're going to be caused by problems with
+    the server, network connectivity, or improper configuration.
+    So we're going to want the caller to define how the errors get
+    display to the user via the web service or CLI.
     '''
 
     def __init__(self, server):
@@ -44,7 +51,7 @@ class DfsrQuery():
         if len(query_results) > 0:
             return query_results[0].State
         else:
-            #Note: Dfsr won't return state when offline.
+            #Dfsr won't return an error when offline.
             return 'Service offline'
 
     def get_replication_status_counts(self, server_name=None):
@@ -110,7 +117,8 @@ class DfsrQuery():
     @safe_guid
     def get_replication_folder_details(self, guid, server_name=None):
         '''
-        Returns the full details about a DfsrReplicatedFolder
+        Returns the full details about a DfsrReplicatedFolder.
+        Requires the GUID for the Replication Folder.
         '''
         if server_name:
             self.server = server_name
@@ -139,6 +147,7 @@ class DfsrQuery():
     def get_sync_details(self, guid, server_name=None):
         '''
         Returns the the full details about a connector's sync.
+        Requires the GUID of the DFSR Connector.
         '''
         if server_name:
             self.server = server_name
@@ -150,6 +159,7 @@ class DfsrQuery():
     def get_update_details(self, guid, server_name=None):
         '''
         Returns the the full details about a connector's update.
+        Requires the GUID of the DFSR Connector.
         '''
         if server_name:
             self.server = server_name

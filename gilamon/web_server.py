@@ -10,6 +10,7 @@ from jinja2 import Environment, FileSystemLoader
 from pythoncom import CoInitialize, CoUninitialize
 
 import dfsr_query
+from wmi_client import ArgumentError, WmiError
 
 
 def get_working_dir():
@@ -37,19 +38,25 @@ class GilaMonRoot:
         '''
         This view gets served at the root URL or at root/index.html
         '''
-        self.server = server = cherrypy.session.get('server')
-        servers = cherrypy.request.app.config['dfsr']['servers']
-        site_title = cherrypy.request.app.config['dfsr']['title']
-        if not server:
-            self.server = servers[0]
+        try:
+            self.server = server = cherrypy.session.get('server')
+            servers = cherrypy.request.app.config['dfsr']['servers']
+            site_title = cherrypy.request.app.config['dfsr']['title']
+            if not server:
+                self.server = servers[0]
 
-        self.dfsr = dfsr_query.DfsrQuery(self.server)
-
-        context = {
-            'server_name': self.server,
-            'servers_avail': servers,
-            'site_title': site_title}
-        template = env.get_template('index.html')
+            self.dfsr = dfsr_query.DfsrQuery(self.server)
+            context = {
+                'server_name': self.server,
+                'servers_avail': servers,
+                'site_title': site_title}
+            template = env.get_template('index.html')
+        except ArgumentError, e:
+            template = env.get_template('error.html')
+            context = { 'error_msg': e.msg }
+        except Exception, e:
+            template = env.get_template('error.html')
+            contenxt = { 'error_msg': (str)e }
         return template.render(context)
 
     @cherrypy.expose
@@ -70,54 +77,62 @@ class GilaMonRoot:
     def get_server_status(self, server=None):
         ''' Handles Ajax call to get the current DFSR server status '''
         server = self.check_session_server(server)
-        current_state = self.dfsr.get_dfsr_state(server)
-        return current_state
+        try:
+            return self.dfsr.get_dfsr_state(server)
+        except WmiError as e:
+            return e.msg
 
     @cherrypy.expose
     def get_rg_states(self, server=None):
         ''' Handles URL root/get_rg_states and serves html fragment '''
         server = self.check_session_server(server)
 
-        group_states = self.dfsr.get_replication_status_counts(server)
-        context = {
-            'RGs_count_G': str(len(group_states['Normal'])),
-            'RGs_green':   group_states['Normal'],
-            'RGs_count_Y': str(
-                               len(group_states['Auto Recovery']) +
-                               len(group_states['Initialized']) +
-                               len(group_states['Initial Sync'])),
-            'RGs_yellow':  group_states['Auto Recovery'] +
-                           group_states['Initialized'] +
-                           group_states['Initial Sync'],
-            'RGs_count_R': str(
-                               len(group_states['In Error']) +
-                               len(group_states['Uninitialized'])),
-            'RGs_red':     group_states['In Error'] +
-                           group_states['Uninitialized']}
-        template = env.get_template('rg_states.html')
-        return template.render(context)
+        try:
+            group_states = self.dfsr.get_replication_status_counts(server)
+            context = {
+                'RGs_count_G': str(len(group_states['Normal'])),
+                'RGs_green':   group_states['Normal'],
+                'RGs_count_Y': str(
+                                   len(group_states['Auto Recovery']) +
+                                   len(group_states['Initialized']) +
+                                   len(group_states['Initial Sync'])),
+                'RGs_yellow':  group_states['Auto Recovery'] +
+                               group_states['Initialized'] +
+                               group_states['Initial Sync'],
+                'RGs_count_R': str(
+                                   len(group_states['In Error']) +
+                                   len(group_states['Uninitialized'])),
+                'RGs_red':     group_states['In Error'] +
+                               group_states['Uninitialized']}
+            template = env.get_template('rg_states.html')
+            return template.render(context)
+        except WmiError as e:
+            return report_and_log_error_fragment(e.msg)
 
     @cherrypy.expose
     def get_connector_states(self, server=None):
         ''' Handles URL root/get_connector_states and serves html fragment '''
         server = self.check_session_server(server)
-        cn_states = self.dfsr.get_connector_status_counts(server)
+        try:
+            cn_states = self.dfsr.get_connector_status_counts(server)
 
-        context = {
-            'conn_count_G': str(len(cn_states['Online'])),
-            'conn_green':   [self.get_connector_name(*c)
-                               for c in cn_states['Online']],
-            'conn_count_Y': str(len(cn_states['Connecting'])),
-            'conn_yellow':  [self.get_connector_name(*c)
-                               for c in cn_states['Connecting']],
-            'conn_count_R': str(
-                              len(cn_states['Offline']) +
-                              len(cn_states['In Error'])),
-            'conn_red':     [self.get_connector_name(*c)
-                               for c in (cn_states['Offline'] +
-                                         cn_states['In Error'])]}
-        template = env.get_template('connector_states.html')
-        return template.render(context)
+            context = {
+                'conn_count_G': str(len(cn_states['Online'])),
+                'conn_green':   [self.get_connector_name(*c)
+                                   for c in cn_states['Online']],
+                'conn_count_Y': str(len(cn_states['Connecting'])),
+                'conn_yellow':  [self.get_connector_name(*c)
+                                   for c in cn_states['Connecting']],
+                'conn_count_R': str(
+                                  len(cn_states['Offline']) +
+                                  len(cn_states['In Error'])),
+                'conn_red':     [self.get_connector_name(*c)
+                                   for c in (cn_states['Offline'] +
+                                             cn_states['In Error'])]}
+            template = env.get_template('connector_states.html')
+            return template.render(context)
+        except WmiError as e:
+            return report_and_log_error_fragment(e.msg)
 
     @cherrypy.expose
     def get_replication_group_list(self, server=None):
@@ -125,39 +140,45 @@ class GilaMonRoot:
         serves html fragment.
         '''
         server = self.check_session_server(server)
-        replication_groups = sorted(
-            self.dfsr.get_all_replication_groups(server),
-            key=lambda x: str(x.ReplicationGroupName))
+        try:
+            replication_groups = sorted(
+                self.dfsr.get_all_replication_groups(server),
+                key=lambda x: str(x.ReplicationGroupName))
 
-        context = {'replication_groups': replication_groups}
-        template = env.get_template('rg_list.html')
-        return template.render(context)
+            context = {'replication_groups': replication_groups}
+            template = env.get_template('rg_list.html')
+            return template.render(context)
+        except WmiError as e:
+            return report_and_log_error_fragment(e.msg)
 
     @cherrypy.expose
     def show_replication(self, guid, server=None):
         ''' Handles URL root/show_replication and serves html fragment.'''
         server = self.check_session_server(server)
-        results = self.dfsr.get_replication_folder_details(guid, server)
-        rfolders = [{
-            'name': r.ReplicatedFolderName,
-            'folder_state': r.State,
-            'current_size_staging': r.CurrentStageSizeInMb,
-            'current_size_conflicts': r.CurrentConflictSizeInMb}
-            for r in results]
+        try:
+            results = self.dfsr.get_replication_folder_details(guid, server)
+            rfolders = [{
+                'name': r.ReplicatedFolderName,
+                'folder_state': r.State,
+                'current_size_staging': r.CurrentStageSizeInMb,
+                'current_size_conflicts': r.CurrentConflictSizeInMb}
+                for r in results]
 
-        connection_info = self.dfsr.get_connectors(guid, server)
-        connectors = [{
-            'Guid': x.ConnectionGuid,
-            'Title': self.get_connector_direction(
-            x.MemberName, x.PartnerName, x.Inbound),
-            'State': x.State}
-            for x in connection_info]
+            connection_info = self.dfsr.get_connectors(guid, server)
+            connectors = [{
+                'Guid': x.ConnectionGuid,
+                'Title': self.get_connector_direction(
+                x.MemberName, x.PartnerName, x.Inbound),
+                'State': x.State}
+                for x in connection_info]
 
-        context = {
-            'rfolders': rfolders,
-            'connectors': connectors}
-        template = env.get_template('rg_details.html')
-        return template.render(context)
+            context = {
+                'rfolders': rfolders,
+                'connectors': connectors}
+            template = env.get_template('rg_details.html')
+            return template.render(context)
+        except WmiError as e:
+            return report_and_log_error_fragment(e.msg)
 
     @cherrypy.expose
     @tools.json_in()
@@ -165,45 +186,48 @@ class GilaMonRoot:
     def show_sync(self, guid, server=None):
         ''' Handles Ajax request and serves up Json response '''
         server = self.check_session_server(server)
+        try:
+            sync = self.dfsr.get_sync_details(guid)[0]
+            active_files = self.dfsr.get_update_details(sync.ConnectionGuid)
 
-        sync = self.dfsr.get_sync_details(guid)[0]
-        active_files = self.dfsr.get_update_details(sync.ConnectionGuid)
+            if len(active_files) > 0:
+                updates = [(f.FullPathName + " [" + f.UpdateState + "]: " +
+                            self.get_connector_direction(
+                            self.server, f.PartnerName, f.Inbound))
+                            for f in active_files]
+            else:
+                updates = []
 
-        if len(active_files) > 0:
-            updates = [(f.FullPathName + " [" + f.UpdateState + "]: " +
-                        self.get_connector_direction(
-                        self.server, f.PartnerName, f.Inbound))
-                        for f in active_files]
-        else:
-            updates = []
+            context = {
+                'ConnectionGuid': sync.ConnectionGuid,
+                'Title': self.get_connector_direction(
+                    sync.MemberName,
+                    sync.PartnerName, sync.Inbound),
+                'MemberGuid': sync.MemberGuid,
+                'PartnerGuid': sync.PartnerGuid,
+                'ReplicationGroupGuid': sync.ReplicationGroupGuid,
+                'ReplicationGroupName': sync.ReplicationGroupName,
+                'State': sync.State,
+                'InitiationReason': sync.InitiationReason,
+                'StartTime': self.format_time(sync.StartTime),
+                'EndTime': self.format_time(sync.EndTime),
+                'UpdatesTransferred': sync.UpdatesTransferred,
+                'BytesTransferred': sync.BytesTransferred,
+                'UpdatesNotTransferred': sync.UpdatesNotTransferred,
+                'UpdatesToBeTransferred': sync.UpdatesToBeTransferred,
+                'ConflictsGenerated': sync.ConflictsGenerated,
+                'TombstonesGenerated': sync.TombstonesGenerated,
+                'LastErrorCode': sync.LastErrorCode,
+                'LastErrorMessageId': sync.LastErrorMessageId,
+                'ForceReplicationEndTime': self.format_time(
+                    sync.ForceReplicationEndTime),
+                'ForceReplicationBandwidthlevel':
+                    sync.ForceReplicationBandwidthlevel,
+                'ActiveUpdates': updates}
+            return context
+        except WmiError as e:
+            return e.msg
 
-        context = {
-            'ConnectionGuid': sync.ConnectionGuid,
-            'Title': self.get_connector_direction(
-                sync.MemberName,
-                sync.PartnerName, sync.Inbound),
-            'MemberGuid': sync.MemberGuid,
-            'PartnerGuid': sync.PartnerGuid,
-            'ReplicationGroupGuid': sync.ReplicationGroupGuid,
-            'ReplicationGroupName': sync.ReplicationGroupName,
-            'State': sync.State,
-            'InitiationReason': sync.InitiationReason,
-            'StartTime': self.format_time(sync.StartTime),
-            'EndTime': self.format_time(sync.EndTime),
-            'UpdatesTransferred': sync.UpdatesTransferred,
-            'BytesTransferred': sync.BytesTransferred,
-            'UpdatesNotTransferred': sync.UpdatesNotTransferred,
-            'UpdatesToBeTransferred': sync.UpdatesToBeTransferred,
-            'ConflictsGenerated': sync.ConflictsGenerated,
-            'TombstonesGenerated': sync.TombstonesGenerated,
-            'LastErrorCode': sync.LastErrorCode,
-            'LastErrorMessageId': sync.LastErrorMessageId,
-            'ForceReplicationEndTime': self.format_time(
-                sync.ForceReplicationEndTime),
-            'ForceReplicationBandwidthlevel':
-                sync.ForceReplicationBandwidthlevel,
-            'ActiveUpdates': updates}
-        return context
 
     def format_time(self, time_obj):
         ''' formats a time object '''
@@ -235,6 +259,12 @@ class GilaMonRoot:
         else:
             cherrypy.session['server'] = server
         return server
+
+    def report_and_log_error_fragment(self, msg):
+        cherrypy.log(msg, 
+                         context='', severity=logging.DEBUG, traceback=False)
+        fragment = '<div class="error-msg">%s</div>' % msg
+        return fragment.render()
 
 
 '''
