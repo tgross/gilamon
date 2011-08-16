@@ -53,30 +53,22 @@ $(function() {
 
     $.get("get_rg_states/{{ server_name }}", function(data) {
         $("#replication_data").append(data);
-    })
-    .error(function() { 
-        $("#replication_data").append(
-             "<div class='error-msg'>ERROR: Failed to get replication group states.</div>")
     });
 
     $.get("get_connector_states/{{ server_name }}", function(data) {
         $("#connector_data").empty();
         $("#connector_data").append(data);
-    })
-    .error(function() { 
-        $("#connector_data").append(
-             "<div class='error-msg'>ERROR: Failed to get connector states.</div>");
     });
 
     $.get("get_replication_group_list/{{ server_name }}", function(data) {
         $("#accordion").append(data).accordion();
-        $("#accordion")
-         .accordion({
+       $("#accordion").accordion({
              header: "> div > h3",
              collapsible: true,
+             active: false,
              change: function(event, ui) {
                  var clicked = $(this).accordion("option","active");
-                 if (clicked) {
+                 if (clicked > -1) {
                      guid = ui.newContent.attr("id");
                      $.get("/show_replication/"+guid, function(data) {
                          ui.newContent.empty();
@@ -86,10 +78,6 @@ $(function() {
                  }
              }
          });
-    })
-    .error(function() { 
-        $("#accordion").append(
-             "<div class='error-msg'>ERROR: Failed to get list of replication groups.</div>")
     });
 
 });
@@ -113,17 +101,15 @@ $(function() {
 </form>
 </div>
 
-<h2>{{ server_name }}</h2>
-<div id="accordion">
-    <h3 class="header"><a href="#SummaryData">Summary</a></h3>
-    <div id="SummaryData">
-      <div>Server state: <div id="server_status"></div></div>
-      <div class="section-header">Replication Group Status</div>
-      <div id="replication_data"></div>
-      <div class="section-header">Connector Status</div>
-      <div id="connector_data"></div>
-    </div>
+<div class="summary ui-widget-content ui-corner-all">
+  <h2>{{ server_name }} Summary</h2>
+  <div>Server state: <span id="server_status"></span></div>
+  <div class="section-header">Replication Group Status</div>
+  <div id="replication_data"></div>
+  <div class="section-header">Connector Status</div>
+  <div id="connector_data"></div>
 </div>
+<div id="accordion"></div>
 
 </body>
 </html>

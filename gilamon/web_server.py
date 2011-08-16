@@ -3,6 +3,7 @@
 import sys
 import os.path
 from time import strftime
+import logging
 
 import cherrypy
 from cherrypy import tools
@@ -37,6 +38,10 @@ class GilaMonRoot:
     def index(self):
         '''
         This view gets served at the root URL or at root/index.html
+        If the initial WMI setup just isn't working, then this method will
+        respond with an error page, otherwise it'll respond with the main
+        content page and the rest of the methods will report any errors
+        they encounter.
         '''
         try:
             self.server = server = cherrypy.session.get('server')
@@ -56,7 +61,7 @@ class GilaMonRoot:
             context = { 'error_msg': e.msg }
         except Exception, e:
             template = env.get_template('error.html')
-            contenxt = { 'error_msg': (str)e }
+            context = { 'error_msg': str(e) }
         return template.render(context)
 
     @cherrypy.expose
@@ -80,7 +85,7 @@ class GilaMonRoot:
         try:
             return self.dfsr.get_dfsr_state(server)
         except WmiError as e:
-            return e.msg
+            return self.report_and_log_error_fragment(e.msg)
 
     @cherrypy.expose
     def get_rg_states(self, server=None):
@@ -107,7 +112,7 @@ class GilaMonRoot:
             template = env.get_template('rg_states.html')
             return template.render(context)
         except WmiError as e:
-            return report_and_log_error_fragment(e.msg)
+            return self.report_and_log_error_fragment(e.msg)
 
     @cherrypy.expose
     def get_connector_states(self, server=None):
@@ -132,7 +137,7 @@ class GilaMonRoot:
             template = env.get_template('connector_states.html')
             return template.render(context)
         except WmiError as e:
-            return report_and_log_error_fragment(e.msg)
+            return self.report_and_log_error_fragment(e.msg)
 
     @cherrypy.expose
     def get_replication_group_list(self, server=None):
@@ -149,7 +154,7 @@ class GilaMonRoot:
             template = env.get_template('rg_list.html')
             return template.render(context)
         except WmiError as e:
-            return report_and_log_error_fragment(e.msg)
+            return self.report_and_log_error_fragment(e.msg)
 
     @cherrypy.expose
     def show_replication(self, guid, server=None):
@@ -178,7 +183,7 @@ class GilaMonRoot:
             template = env.get_template('rg_details.html')
             return template.render(context)
         except WmiError as e:
-            return report_and_log_error_fragment(e.msg)
+            return self.report_and_log_error_fragment(e.msg)
 
     @cherrypy.expose
     @tools.json_in()
@@ -263,8 +268,7 @@ class GilaMonRoot:
     def report_and_log_error_fragment(self, msg):
         cherrypy.log(msg, 
                          context='', severity=logging.DEBUG, traceback=False)
-        fragment = '<div class="error-msg">%s</div>' % msg
-        return fragment.render()
+        return '<div class="error-msg">%s</div>' % msg
 
 
 '''

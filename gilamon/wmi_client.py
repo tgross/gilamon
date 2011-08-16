@@ -47,7 +47,7 @@ class WmiClient():
                 return []
 
             return self._unpack_query_results(query_results)
-        except pywintypes.com_error, e:
+        except com_error, e:
             raise WmiError(e)
 
     def _unpack_query_results(self, raw_query_results):
@@ -111,10 +111,11 @@ class WmiError(Exception):
 
     def __init__(self, error, msg=''):
         self.error = error
-        if error.__dict__.has_attr('hresult'):
-            hresult = error.hresult
-        if error.__dict__.has_attr('excepinfo'):
+        hresult = None
+        if 'result' in error.__dict__:
+            hresult = ' [%d]' % error.hresult
+        if 'excepinfo' in error.__dict__:
             msg = msg + '; '.join(
                 filter(lambda e:
                            isinstance(e, unicode), error.excepinfo))
-        self.msg = 'COM Error [%d]: %s' % (hresult or '', msg or '')
+        self.msg = 'COM Error%s: %s' % (hresult or '', msg or '')

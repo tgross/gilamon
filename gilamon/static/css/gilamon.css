@@ -20,6 +20,13 @@ body {
     //TODO
 }
 
+.summary {
+    padding-left: 2em;
+    padding-bottom: 1em;
+    margin-bottom: 1em;
+    margin-top: 2em;
+}
+
 .header {
     padding-left: 2em;
 }
@@ -27,6 +34,7 @@ body {
 .tool-tipped:hover {
     width: 40%;
     background-color: Silver;
+    cursor: pointer;
 }
 
 .status-icon {
