@@ -66,7 +66,6 @@ $(function() {
     $("#servers").buttonset();
     refresh_summary();
     var refresh = setInterval(function() { refresh_summary();}, 10000);
-    $.ajaxSetup({ cache: false });
 
     $.get("get_replication_group_list/{{ server_name }}", function(data) {
        $("#accordion").append(data).accordion();
