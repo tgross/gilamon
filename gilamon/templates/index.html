@@ -44,14 +44,14 @@ function set_server() {
     });
 }
 
-$(function() {
-
-    $("#servers").buttonset();
+function refresh_summary() {
     $.get("get_server_status/{{ server_name }}", function(data) {
+        $("#server_status").empty();
         $("#server_status").append(data);
     });
 
     $.get("get_rg_states/{{ server_name }}", function(data) {
+        $("#replication_data").empty();
         $("#replication_data").append(data);
     });
 
@@ -59,9 +59,17 @@ $(function() {
         $("#connector_data").empty();
         $("#connector_data").append(data);
     });
+}
+
+$(function() {
+
+    $("#servers").buttonset();
+    refresh_summary();
+    var refresh = setInterval(function() { refresh_summary();}, 10000);
+    $.ajaxSetup({ cache: false });
 
     $.get("get_replication_group_list/{{ server_name }}", function(data) {
-        $("#accordion").append(data).accordion();
+       $("#accordion").append(data).accordion();
        $("#accordion").accordion({
              header: "> div > h3",
              collapsible: true,

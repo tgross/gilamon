@@ -15,7 +15,7 @@ def safe_guid(function):
             uuid.UUID(args[1])
             return function(*args, **kwargs)
         except:
-            raise ArgumentError('Invalid GUID',' '.join(args))
+            raise ArgumentError('Invalid GUID',' '.join(str(args)))
     return _function
 
 
