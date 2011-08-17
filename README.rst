@@ -50,23 +50,11 @@ Installation
 There a couple different ways to install GilaMon, depending on what you want
 to do with it.  You can:
 
-  * Run the web service from a Windows executable.
   * Run as a Python service or script. [Recommended]
+  * Run the web service from a Windows executable.
   * Run the web service as a Python script.
   * Run DFSR queries as a Python script.
   * Run arbitrary WMI queries as a Python script.
-
-**Installing the Windows Executable**
-_____________________________________
-If you just want to run GilaMon as a Windows service, and don't plan on
-making any changes to the code, you can just `download the Windows executables`_.  You can run the exectuable from a server and then use your workstation's web browser, or you can run the executable directly from your workstation and browse to ``localhost`` instead.
-
-  * Download the file for your architecture (64 or 32 bit).
-  * Unzip the archive into your Program Files directory.
-  * Open a command line into the ``gilamon`` directory.
-  * ``gilamon_service.exe -install``
-
-``pywin32``, ``cherrypy`` and ``jinja2`` are bundled in the executable.  See the ``licenses`` folder in the zip file for the licenses for these libraries.
 
 
 **Installing as a Python Service or Script [Recommended]**
@@ -84,6 +72,19 @@ If you want to run as a service instead of a script, also do the following:
 
   * Open a command line into the ``gilamon`` directory.
   * ``python setup.py -install``
+
+
+**Installing the Windows Executable**
+_____________________________________
+If you just want to run GilaMon as a Windows service, and don't plan on
+making any changes to the code, you can just `download the Windows executables`_.  You can run the exectuable from a server and then use your workstation's web browser, or you can run the executable directly from your workstation and browse to ``localhost`` instead.
+
+  * Download the file for your architecture (64 or 32 bit).
+  * Unzip the archive into your Program Files directory.
+  * Open a command line into the ``gilamon`` directory.
+  * ``gilamon_service.exe -install``
+
+``pywin32``, ``cherrypy`` and ``jinja2`` are bundled in the executable.  See the ``licenses`` folder in the zip file for the licenses for these libraries.
 
 
 Running GilaMon
@@ -105,7 +106,7 @@ If you want to run GilaMon with the web service as a Python script:
 The ``gilamon.conf`` file uses Python syntax.  If you don't know Python, that's okay.  Just use the pattern that's been provided.  The IP address and server names have to be surrounded by quotes (either single or double is okay as long as they match), and the port number can't be in quotes.  Use forward slashes for the log file path, or double back-slashes.
 
 
-If you want to run GilaMon as a script without the web service, you'll want to open Python interpreter and either ``import dfsr_query`` or ``import wmi_client`` to get the modules you'll need for your purposes.  See the source code for documentation for these calls (``TODO:`` add this information to Wiki).
+If you want to run GilaMon as a script without the web service, you'll want to open Python interpreter and either ``import dfsr_query`` or ``import wmi_client`` to get the modules you'll need for your purposes.  See the source code for documentation for these calls. (``TODO:`` add this information to Wiki).
 
 Support
 =======
@@ -142,7 +143,7 @@ Contributing
 GilaMon is an open source project managed using `Mercurial`_ version control. The repository is hosted on `Bitbucket`_, so contributing is simple: fork the project and commit back your changes. Please keep in mind the following about contributing:
 
   * Contributed code must be written in the existing style. Please follow `PEP 8`_ and check out your code with `pylint`_.
-  * Run the tests before committing your changes. If your changes break the build, they won't be accepted.
+  * Run the tests before committing your changes. If your changes break the build, they won't be accepted.  There's a batch script in the root directory that will discover and run all tests.
   * If you're adding new functionality, you must include basic tests and documentation.
 
 

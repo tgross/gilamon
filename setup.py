@@ -91,6 +91,6 @@ setup (
     author_email = 'gross.timothy@gmail.com',
     url = 'https://bitbucket.org/tgross/gilamon',
     options = { 'py2exe': py2exe_opts },
-    service = ['gilamon'],
+    service = ['gilamon.gilamon_service'],
     data_files = setup_data_files,
 )
