@@ -1,7 +1,9 @@
+import os
 from distutils.core import setup
-import py2exe
 import platform
 from datetime import datetime
+
+import py2exe
 
 # Leave out any package not strictly necessary.
 # TODO: There are almost certainly some more that can be removed.
@@ -50,16 +52,39 @@ py2exe_opts= {
 if not platform.architecture()[0] == '64bit':
     py2exe_opts['bundle_files'] = 2 #not supported on win64
 
-#TODO: port these all automatically instead of manual copy
-additional_files = [
-    ('config',[]),
-    ('templates',[]),
-    ('static',[]),
-    ('licenses',[]),
-    ]
+'''
+This ugly section is needed to copy all the static files and
+various distribution files to the directories included with
+the py2exe dist directory.
+'''
+setup_data_files = []
+
+extra_dirs = [
+    ('licenses', 'distribution'),
+    ('config', os.path.join('gilamon','config')),
+    ('templates', os.path.join('gilamon','templates')),
+    ('static', os.path.join('gilamon','static'))]
+
+cwd = os.getcwd()
+
+for extra_dir in extra_dirs:
+    extra_path = os.path.join(cwd, extra_dir[1])
+    for root, dirs, files in os.walk(extra_path):
+        # need this to make sure subdirectories are added by py2exe
+        if os.path.abspath(root) == os.path.abspath(extra_dir[1]):
+            root_path = extra_dir[0]
+        else:
+            root_path = os.path.join(
+                extra_dir[0], os.path.relpath(root, extra_dir[1]))
+        if files:
+            extra_files = []
+            for filename in files:
+                extra_files.append(os.path.join(root, filename))
+            setup_data_files.append((root_path, extra_files))
+
 
 setup (
-    version = '0.8.2' + datetime.now().strftime('%y%j.%H%M%S')
+    version = '0.8.2.' + datetime.now().strftime('%j'),
     description = 'GilaMon DFSR Monitor',
     name = 'GilaMon',
     author = 'Tim Gross',
@@ -67,5 +92,5 @@ setup (
     url = 'https://bitbucket.org/tgross/gilamon',
     options = { 'py2exe': py2exe_opts },
     service = ['gilamon'],
-    data_files = additional_files,
+    data_files = setup_data_files,
 )
