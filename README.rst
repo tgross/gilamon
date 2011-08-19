@@ -68,16 +68,21 @@ Running as a Python service is more complex if you don't already use Python.  Bu
   * Install Jinja2, by typing at the command line: ``easy_install jinja2``
   * Either download the `current source code`_ zip archive for GilaMon or use `Mercurial`_ to clone the repository, and extract into your ``Python27/Lib/sites-packages`` directory.
 
+Important: If you've never installed Python on Windows before, you must set/modify Windows `environment variables`_ in order for your Python install to work.
+
+  *  Create a system variable named **PYTHON_HOME** pointing to the folder where you have Python installed.
+  *  At the end of your **PATH** system variable, add ``%PYTHON_HOME%;%PYTHON_HOME%\Scripts;`` to support both Python and ``setuptools``.
+
 If you want to run as a service instead of a script, also do the following:
 
   * Open a command line into the ``gilamon`` directory.
   * ``python setup.py -install``
 
 
-**Installing the Windows Executable**
-_____________________________________
+**Installing as a  Windows Executable**
+_______________________________________
 If you just want to run GilaMon as a Windows service, and don't plan on
-making any changes to the code, you can just `download the Windows executables`_.  You can run the exectuable from a server and then use your workstation's web browser, or you can run the executable directly from your workstation and browse to ``localhost`` instead.
+making any changes to the code, you don't need to install Python or any dependencies.  You can just `download the Windows executables`_.  You can run the exectuable from a server and then use your workstation's web browser, or you can run the executable directly from your workstation and browse to ``localhost`` instead.
 
   * Download the file for your architecture (64 or 32 bit).
   * Unzip the archive into your Program Files directory.
@@ -100,13 +105,13 @@ If you want to run GilaMon as a Windows service, whether from the executable or 
 If you want to run GilaMon with the web service as a Python script:
   * Use a text editor to change ``/gilamon/config/gilamon.conf`` to the port and address you want your service to list on. Also add the host names of your DFSR servers under the ``[dfsr]`` section.  * Use a text editor to change
   * Go the command line and navigate to the ``gilamon`` directory.
-  * ``python gila_mon.py``
+  * ``python web_server.py``
   * Point a web browser at the address and port you put in the ``gilamon.conf`` file.
 
 The ``gilamon.conf`` file uses Python syntax.  If you don't know Python, that's okay.  Just use the pattern that's been provided.  The IP address and server names have to be surrounded by quotes (either single or double is okay as long as they match), and the port number can't be in quotes.  Use forward slashes for the log file path, or double back-slashes.
 
 
-If you want to run GilaMon as a script without the web service, you'll want to open Python interpreter and either ``import dfsr_query`` or ``import wmi_client`` to get the modules you'll need for your purposes.  See the source code for documentation for these calls. (``TODO:`` add this information to Wiki).
+If you want to run GilaMon as a script without the web service, you'll want to open your Python interpreter and either ``import dfsr_query`` or ``import wmi_client`` to get the modules you'll need for your purposes.  See the source code for documentation for these calls. (``TODO:`` add this information to Wiki).
 
 Support
 =======
@@ -122,7 +127,7 @@ Following are what I suspect might be Frequently Asked Questions about installin
 __________________________________________________
 Check the Event Log.  It may show you that it's a configuration issue.  Make sure the IP and port number are valid.  If that's not it, please contact me or file an issue so that we can try to fix the problem (include the text of the event, if possible).
 
-Also, make sure that you're Windows environment variables PYTHONPATH and PATH have been set.
+Also, make sure that you're Windows environment variables PYTHON_HOME and PATH have been set.
 
 **The GilaMon service installs and starts, but I get "Internet Explorer cannot view this page" on the web page.**
 _________________________________________________________________________________________________________________
@@ -170,7 +175,7 @@ The following are features I'd like to add in the future:
 .. _`cherrypy`: http://www.cherrypy.org/
 .. _`jinja2`: http://jinja.pocoo.org/docs/
 .. _`mock`: http://pypi.python.org/pypi/mock
-
+.. _`environment variables`: http://msdn.microsoft.com/en-us/library/ee537574.aspx
 .. _`download the Windows executables`: https://bitbucket.org/tgross/gilamon/downloads
 
 .. _`download and install Python`: http://www.python.org/download/
