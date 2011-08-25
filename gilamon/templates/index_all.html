@@ -78,20 +78,34 @@ $(function() {
     var refresh = setInterval(function() { refresh_summary();}, 10000);
 
     $.getJSON("get_replication_group_list/{{ server_name }}", function(data) {
-        var rg_list = data;
-        $("#search_rg").autocomplete({
-            source: rg_list,
-            minLength: 2,
-            select: function(event, ui) {
-                var guid = ui.item.id;
-                if (guid) {
-                    $.get("/show_replication/"+guid, function(data) {
-                        $("#details").empty();
-                        $("#details").append(data);
-                    })
-                };
-            }
+        rg_list = "";
+        $.each(data, function(obj, rg) {
+            rg_list = rg_list +
+                '<h3 style="padding-left:2em">' +
+                '<a href="#' + rg.id +'">'+
+                rg.value + '</a></h3><div id="' +
+                rg.id + '">Making query...</div>'
         });
+    
+       $("#details").append(rg_list).accordion();
+       $("#details").accordion({
+             header: "> div > h3",
+             collapsible: true,
+             active: false,
+             change: function(event, ui) {
+                 var clicked = $(this).accordion("option","active");
+                 if (clicked > -1) {;
+                     guid = ui.newContent.attr("id");
+                     if (guid) {
+                       $.get("/show_replication/"+guid, function(data) {
+                           ui.newContent.empty();
+                           ui.newContent.append(data);
+                           $("#details").accordion("resize");
+                       });
+                     }
+                 }
+             }
+         });
     });
 
 });
@@ -123,15 +137,7 @@ $(function() {
   <div class="section-header">Connector Status</div>
   <div id="connector_data"></div>
 </div>
-<div class="summary ui-widget-content ui-corner-all">
-  <h2>Replication Details</h2>
-  <div class="ui-widget">
-     <label for="search_rg">Search: </label>
-     <input id="search_rg" />
-  </div>
-  <div id="details">
-  </div>
-</div>
+<div id="details"></div>
 
 </body>
 </html>

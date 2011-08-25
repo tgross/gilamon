@@ -1,4 +1,0 @@
-{% for rg in replication_groups %}
-    <h3 style="padding-left:2em"><a href="#{{ rg.ReplicationGroupGuid }}">{{ rg.ReplicationGroupName }}</a></h3>
-    <div id="{{ rg.ReplicationGroupGuid }}">Making query...</div>
-{% endfor %}

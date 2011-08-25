@@ -55,7 +55,13 @@ class GilaMonRoot:
                 'server_name': self.server,
                 'servers_avail': servers,
                 'site_title': site_title}
-            template = env.get_template('index.html')
+
+            # UI options
+            if cherrypy.request.app.config['dfsr']['show_all_replications']:
+                template = env.get_template('index_all.html')
+            else:
+                template = env.get_template('index.html')
+
         except ArgumentError, e:
             template = env.get_template('error.html')
             context = { 'error_msg': e.msg }
@@ -139,10 +145,12 @@ class GilaMonRoot:
         except WmiError as e:
             return self.report_and_log_error_fragment(e.msg)
 
+
     @cherrypy.expose
+    @tools.json_out()
     def get_replication_group_list(self, server=None):
-        ''' Handles URL root/get_replication_group_list and 
-        serves html fragment.
+        ''' Handles Ajax call to URL root/get_replication_group_list
+        and responds with a list of replication name/GUID pairs.
         '''
         server = self.check_session_server(server)
         try:
@@ -150,9 +158,10 @@ class GilaMonRoot:
                 self.dfsr.get_all_replication_groups(server),
                 key=lambda x: str(x.ReplicationGroupName))
 
-            context = {'replication_groups': replication_groups}
-            template = env.get_template('rg_list.html')
-            return template.render(context)
+            context = [{ 'id': rg.ReplicationGroupGuid,
+                         'value': rg.ReplicationGroupName }
+                       for rg in replication_groups]
+            return context
         except WmiError as e:
             return self.report_and_log_error_fragment(e.msg)
 
@@ -204,15 +213,6 @@ class GilaMonRoot:
                 updates = []
 
             context = {
-                'ConnectionGuid': sync.ConnectionGuid,
-                'Title': self.get_connector_direction(
-                    sync.MemberName,
-                    sync.PartnerName, sync.Inbound),
-                'MemberGuid': sync.MemberGuid,
-                'PartnerGuid': sync.PartnerGuid,
-                'ReplicationGroupGuid': sync.ReplicationGroupGuid,
-                'ReplicationGroupName': sync.ReplicationGroupName,
-                'State': sync.State,
                 'InitiationReason': sync.InitiationReason,
                 'StartTime': self.format_time(sync.StartTime),
                 'EndTime': self.format_time(sync.EndTime),
@@ -223,9 +223,6 @@ class GilaMonRoot:
                 'ConflictsGenerated': sync.ConflictsGenerated,
                 'TombstonesGenerated': sync.TombstonesGenerated,
                 'LastErrorCode': sync.LastErrorCode,
-                'LastErrorMessageId': sync.LastErrorMessageId,
-                'ForceReplicationEndTime': self.format_time(
-                    sync.ForceReplicationEndTime),
                 'ForceReplicationBandwidthlevel':
                     sync.ForceReplicationBandwidthlevel,
                 'ActiveUpdates': updates}

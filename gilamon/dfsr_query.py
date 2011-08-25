@@ -15,7 +15,7 @@ def safe_guid(function):
             uuid.UUID(args[1])
             return function(*args, **kwargs)
         except:
-            raise ArgumentError('Invalid GUID',' '.join(str(args)))
+            raise ArgumentError('Invalid GUID', str(args[1]))
     return _function
 
 
@@ -151,8 +151,14 @@ class DfsrQuery():
         '''
         if server_name:
             self.server = server_name
-        wql = ('SELECT * FROM DfsrSyncInfo WHERE ' +
-                    'ConnectionGuid = "%s"') % guid
+
+        wql = ('SELECT ConnectionGuid, InitiationReason, StartTime, ' +
+               'EndTime, UpdatesTransferred, BytesTransferred, ' +
+               'UpdatesNotTransferred, UpdatesToBeTransferred, '+
+               'ConflictsGenerated, TombstonesGenerated, ' +
+               'ForceReplicationBandwidthLevel, LastErrorCode ' +
+               'FROM DfsrSyncInfo WHERE ConnectionGuid = "{0}"').format(guid)
+
         return self.wmi.make_query(self.server, wql)
 
     @safe_guid
