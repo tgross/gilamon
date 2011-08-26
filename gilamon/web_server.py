@@ -19,7 +19,7 @@ def get_working_dir():
     Determines whether we're running from the py2exe executable
     and sets the current working directory accordingly.
     '''
-    if hasattr(sys, 'frozen'):  #py2exe
+    if hasattr(sys, 'frozen'):  #we're in a py2exe environment
         current = os.path.dirname(sys.executable)
     else:
         current = os.path.dirname(os.path.abspath(__file__))
@@ -94,54 +94,62 @@ class GilaMonRoot:
             return self.report_and_log_error_fragment(e.msg)
 
     @cherrypy.expose
+    @tools.json_out()
     def get_rg_states(self, server=None):
-        ''' Handles URL root/get_rg_states and serves html fragment '''
+        '''
+        Handles Ajax call to get the list of replication groups
+        and their current states.  Returns a JSON context ordered by
+        green/yellow/red state, counts, and then replication group name.
+        '''
         server = self.check_session_server(server)
 
         try:
             group_states = self.dfsr.get_replication_status_counts(server)
-            context = {
-                'RGs_count_G': str(len(group_states['Normal'])),
-                'RGs_green':   group_states['Normal'],
-                'RGs_count_Y': str(
-                                   len(group_states['Auto Recovery']) +
-                                   len(group_states['Initialized']) +
-                                   len(group_states['Initial Sync'])),
-                'RGs_yellow':  group_states['Auto Recovery'] +
-                               group_states['Initialized'] +
-                               group_states['Initial Sync'],
-                'RGs_count_R': str(
-                                   len(group_states['In Error']) +
-                                   len(group_states['Uninitialized'])),
-                'RGs_red':     group_states['In Error'] +
-                               group_states['Uninitialized']}
-            template = env.get_template('rg_states.html')
-            return template.render(context)
+            context = { 
+                'green': {'count': str(len(group_states['Normal'])),
+                          'items': group_states['Normal']},
+                'yellow': {'count': str(
+                        len(group_states['Auto Recovery']) +
+                        len(group_states['Initialized']) +
+                        len(group_states['Initial Sync'])),
+                           'items': group_states['Auto Recovery'] +
+                           group_states['Initialized'] +
+                           group_states['Initial Sync']},
+                'red': {'count': str(
+                        len(group_states['In Error']) +
+                        len(group_states['Uninitialized'])),
+                        'items': group_states['In Error'] + 
+                        group_states['Uninitialized']}}
+            return context
         except WmiError as e:
             return self.report_and_log_error_fragment(e.msg)
 
     @cherrypy.expose
+    @tools.json_out()
     def get_connector_states(self, server=None):
-        ''' Handles URL root/get_connector_states and serves html fragment '''
+        '''
+        Handles Ajax call to get the list of connectors and their current
+        states.  Returns a JSON context ordered by green/yellow/red state,
+        counts, and then connector name.
+        '''
         server = self.check_session_server(server)
         try:
             cn_states = self.dfsr.get_connector_status_counts(server)
 
             context = {
-                'conn_count_G': str(len(cn_states['Online'])),
-                'conn_green':   [self.get_connector_name(*c)
-                                   for c in cn_states['Online']],
-                'conn_count_Y': str(len(cn_states['Connecting'])),
-                'conn_yellow':  [self.get_connector_name(*c)
-                                   for c in cn_states['Connecting']],
-                'conn_count_R': str(
+                'green': {'count': str(len(cn_states['Online'])),
+                          'items': [self.get_connector_name(*c)
+                                   for c in cn_states['Online']]},
+                'yellow': {'count': str(len(cn_states['Connecting'])),
+                           'items': [self.get_connector_name(*c)
+                                   for c in cn_states['Connecting']]},
+                'red': {'count': str(
                                   len(cn_states['Offline']) +
                                   len(cn_states['In Error'])),
-                'conn_red':     [self.get_connector_name(*c)
+                        'items': [self.get_connector_name(*c)
                                    for c in (cn_states['Offline'] +
-                                             cn_states['In Error'])]}
-            template = env.get_template('connector_states.html')
-            return template.render(context)
+                                             cn_states['In Error'])]}}
+            return context
         except WmiError as e:
             return self.report_and_log_error_fragment(e.msg)
 
@@ -167,7 +175,12 @@ class GilaMonRoot:
 
     @cherrypy.expose
     def show_replication(self, guid, server=None):
-        ''' Handles URL root/show_replication and serves html fragment.'''
+        '''
+        Handles request for the details associated with a replication.
+        Returns an HTML fragment listing replicated folders in the group
+        (and their current status), and a list of connectors with
+        details for those connectors available as an Ajax mouseover tooltip.
+        '''
         server = self.check_session_server(server)
         try:
             results = self.dfsr.get_replication_folder_details(guid, server)
@@ -178,13 +191,17 @@ class GilaMonRoot:
                 'current_size_conflicts': r.CurrentConflictSizeInMb}
                 for r in results]
 
+            state_map = { 'Online': 'green',
+                          'Trouble': 'yellow',
+                          'Down': 'red',
+                          'Uninitialized': 'red'}
             connection_info = self.dfsr.get_connectors(guid, server)
             connectors = [{
-                'Guid': x.ConnectionGuid,
+                'Guid': c.ConnectionGuid,
                 'Title': self.get_connector_direction(
-                x.MemberName, x.PartnerName, x.Inbound),
-                'State': x.State}
-                for x in connection_info]
+                c.MemberName, c.PartnerName, c.Inbound),
+                'State': state_map[c.State]}
+                for c in connection_info]
 
             context = {
                 'rfolders': rfolders,
@@ -198,7 +215,11 @@ class GilaMonRoot:
     @tools.json_in()
     @tools.json_out()
     def show_sync(self, guid, server=None):
-        ''' Handles Ajax request and serves up Json response '''
+        '''
+        Handles Ajax request for the details of a sync associated with
+        a particular connector.  Returns a JSON context of K-V pairs for
+        each of the details, including a list of actively replicating files.
+        '''
         server = self.check_session_server(server)
         try:
             sync = self.dfsr.get_sync_details(guid)[0]

@@ -1,82 +1,5 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
-<head>
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<title>GilaMon - DFSR Monitoring</title>
-
-<link href="./static/css/jquery-ui-1.8.14.custom.css" rel="stylesheet" type="text/css" />
-<link href="./static/css/gilamon.css" rel="stylesheet" type="text/css" />
-<script type="text/javascript" src="./static/js/jquery-1.5.1.min.js"></script>
-<script type="text/javascript" src="./static/js/jquery-ui-1.8.14.custom.min.js"></script>
-<script type="text/javascript" src="./static/js/tooltip.js"></script>
-
-<script type="text/javascript">
-
-function show_sync(guid) {
-    $.getJSON("/show_sync/"+guid, function(sync) {
-        var sync_div =
-            "Initiation Reason: " + sync["InitiationReason"] +
-            "<br/>" +
-            "Start Time: " + sync["StartTime"] +
-            "<br/>" +
-            "End Time: " + sync["EndTime"] +
-            "<br/>" +
-            "Updates Transferred: " + sync["UpdatesTransferred"] +
-            "<br/>" +
-            "Bytes Transferred: " + sync["BytesTransferred"] +
-            "<br/>" +
-            "Updates Not Transferred: " + sync["UpdatesNotTransferred"] +
-            "<br/>" +
-            "Updates To Be Transferred: " + sync["UpdatesToBeTransferred"] + 
-            "<br/>" +
-            "Conflicts Generated: " + sync["ConflictsGenerated"] + 
-            "<br/>" +
-            "Tombstones Generated: " + sync["TombstonesGenerated"] +
-            "<br/>" +
-            "Bandwidth Level: " + sync["ForceReplicationBandwidthlevel"] + 
-            "<br/>" +
-            "Last Error Code: " + sync["LastErrorCode"] + "<br/>";
-        if (sync["ActiveUpdates"] != "") {
-            var updates_div = "<p>Current Updates:</p>";
-            $.each(sync["ActiveUpdates"], function(obj, val) {
-                updates_div = updates_div + val + "<br/>";
-            });
-            sync_div = sync_div + updates_div;
-        }
-        tooltip.show(sync_div);
-    });
-}
-
-function set_server() {
-    var server = $("input[name=server-radio]:checked", "#server-selector").val()
-    var change = $.post("change_server/" + server, function() {
-        location.reload(true);
-    });
-}
-
-function refresh_summary() {
-    $.get("get_server_status/{{ server_name }}", function(data) {
-        $("#server_status").empty();
-        $("#server_status").append(data);
-    });
-
-    $.get("get_rg_states/{{ server_name }}", function(data) {
-        $("#replication_data").empty();
-        $("#replication_data").append(data);
-    });
-
-    $.get("get_connector_states/{{ server_name }}", function(data) {
-        $("#connector_data").empty();
-        $("#connector_data").append(data);
-    });
-}
-
-$(function() {
-
-    $("#servers").buttonset();
-    refresh_summary();
-    var refresh = setInterval(function() { refresh_summary();}, 10000);
-
+{% extends "base.html" %}
+{% block detail_script %}
     $.getJSON("get_replication_group_list/{{ server_name }}", function(data) {
         var rg_list = data;
         $("#search_rg").autocomplete({
@@ -93,36 +16,8 @@ $(function() {
             }
         });
     });
-
-});
-
-</script>
-</head>
-
-<body>
-<div id="banner">
-<h1>{{ site_title }}</h1>
-</div>
-
-<div id="servers">
-<form id="server-selector">
-  {% for s in servers_avail %}
-  <input type="radio" id="#{{ s }}"
-	 name="server-radio" value="{{s}}"
-	 onclick="set_server()"/>
-  <label for="#{{ s }}">{{ s }}</label>
-  {% endfor %}
-</form>
-</div>
-
-<div class="summary ui-widget-content ui-corner-all">
-  <h2>{{ server_name }} Summary</h2>
-  <div>Server state: <span id="server_status"></span></div>
-  <div class="section-header">Replication Group Status</div>
-  <div id="replication_data"></div>
-  <div class="section-header">Connector Status</div>
-  <div id="connector_data"></div>
-</div>
+{% endblock %}
+{% block details %}
 <div class="summary ui-widget-content ui-corner-all">
   <h2>Replication Details</h2>
   <div class="ui-widget">
@@ -132,6 +27,4 @@ $(function() {
   <div id="details">
   </div>
 </div>
-
-</body>
-</html>
+{% endblock %}
