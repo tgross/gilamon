@@ -45,15 +45,15 @@ class GilaMonRoot:
         '''
         try:
             self.server = server = cherrypy.session.get('server')
-            servers = cherrypy.request.app.config['dfsr']['servers']
+            self.valid_servers = cherrypy.request.app.config['dfsr']['servers']
             site_title = cherrypy.request.app.config['dfsr']['title']
             if not server:
-                self.server = servers[0]
+                self.server = self.valid_servers[0]
 
             self.dfsr = dfsr_query.DfsrQuery(self.server)
             context = {
                 'server_name': self.server,
-                'servers_avail': servers,
+                'servers_avail': self.valid_servers,
                 'site_title': site_title}
 
             # UI options
@@ -77,11 +77,13 @@ class GilaMonRoot:
         Handles Ajax call to switch the default DFSR server for future
         requests.
         '''
-        if server:
+        if server in self.valid_servers:
             self.server = server
             self.dfsr.server = server
             cherrypy.session['server'] = server
             return server
+        else:
+            return self.server
 
     @cherrypy.expose
     @tools.json_out()
@@ -105,7 +107,7 @@ class GilaMonRoot:
 
         try:
             group_states = self.dfsr.get_replication_status_counts(server)
-            context = { 
+            context = {
                 'green': {'count': str(len(group_states['Normal'])),
                           'items': group_states['Normal']},
                 'yellow': {'count': str(
@@ -118,7 +120,7 @@ class GilaMonRoot:
                 'red': {'count': str(
                         len(group_states['In Error']) +
                         len(group_states['Uninitialized'])),
-                        'items': group_states['In Error'] + 
+                        'items': group_states['In Error'] +
                         group_states['Uninitialized']}}
             return context
         except WmiError as e:
@@ -273,18 +275,22 @@ class GilaMonRoot:
             return member + " &#x2192 " + partner
 
     def check_session_server(self, server=None):
-        ''' get DFSR server we want out of the session cookie. '''
-        if not server:
-            if 'server' in cherrypy.session:
-                server = cherrypy.session.get('server')
-                if not server:
-                    server = self.server
-        else:
-            cherrypy.session['server'] = server
+        '''
+        Validate the DFSR server argument or the cookie against the valid
+        DFSR server names.
+        '''
+        if not server in self.valid_servers:
+            session_server = cherrypy.session.get('server')
+            if session_server in self.valid_servers:
+                server = session_server
+            else:
+                server = self.server
+        cherrypy.session['server'] = server
         return server
 
+
     def report_and_log_error_fragment(self, msg):
-        cherrypy.log(msg, 
+        cherrypy.log(msg,
                          context='', severity=logging.DEBUG, traceback=False)
         return '<div class="error-msg">%s</div>' % msg
 
