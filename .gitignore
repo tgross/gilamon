@@ -1,0 +1,11 @@
+bin
+build
+dist
+*.pyc
+*.pyo
+&.pyd
+*.tmp*
+*~
+#*#
+*.exe
+*.zip
