@@ -66,7 +66,7 @@ Running as a Python service is more complex if you don't already use Python.  Bu
   * `Download and install pywin32`_ (Build 216 or newer)
   * Install CherryPy, by typing at the command line: ``easy_install cherrypy``
   * Install Jinja2, by typing at the command line: ``easy_install jinja2``
-  * Either download the `current source code`_ zip archive for GilaMon or use `Mercurial`_ to clone the repository, and extract into your ``Python27/Lib/sites-packages`` directory.
+  * Either download the `current source code`_ zip archive for GilaMon or use `Git`_ to clone the repository, and extract into your ``Python27/Lib/sites-packages`` directory.
 
 Important: If you've never installed Python on Windows before, you must set/modify Windows `environment variables`_ in order for your Python install to work.
 
@@ -81,8 +81,7 @@ If you want to run as a service instead of a script, also do the following:
 
 **Installing as a  Windows Executable**
 _______________________________________
-If you just want to run GilaMon as a Windows service, and don't plan on
-making any changes to the code, you don't need to install Python or any dependencies.  You can just `download the Windows executables`_.  You can run the exectuable from a server and then use your workstation's web browser, or you can run the executable directly from your workstation and browse to ``localhost`` instead.
+If you just want to run GilaMon as a Windows service, and don't plan on making any changes to the code, you don't need to install Python or any dependencies.  You can just `download the Windows executables`_.  You can run the exectuable from a server and then use your workstation's web browser, or you can run the executable directly from your workstation and browse to ``localhost`` instead.
 
   * Download the file for your architecture (64 or 32 bit).
   * Unzip the archive into your Program Files directory.
@@ -116,7 +115,7 @@ If you want to run GilaMon as a script without the web service, you'll want to o
 Support
 =======
 
-For general questions or comments, please `send me a message through Bitbucket`_. To report a bug or other type of issue, please use the `issue tracker`_.
+For general questions or comments, please `send me an email`_. To report a bug or other type of issue, please use the `issue tracker`_.
 
 Troubleshooting
 ===============
@@ -145,11 +144,7 @@ Sorry about that!  Please use the `issue tracker`_ and file an issue so that I c
 Contributing
 ============
 
-GilaMon is an open source project managed using `Mercurial`_ version control. The repository is hosted on `Bitbucket`_, so contributing is simple: fork the project and commit back your changes. Please keep in mind the following about contributing:
-
-  * Contributed code must be written in the existing style. Please follow `PEP 8`_ and check out your code with `pylint`_.
-  * Run the tests before committing your changes. If your changes break the build, they won't be accepted.  There's a batch script in the root directory that will discover and run all tests.
-  * If you're adding new functionality, you must include basic tests and documentation.
+GilaMon is an open source project managed using `Git`_ version control. The repository is hosted on `GitHub`_, so contributing is simple: fork and make a pull request.  Make sure you've included tests.
 
 
 Future Features
@@ -176,16 +171,14 @@ The following are features I'd like to add in the future:
 .. _`jinja2`: http://jinja.pocoo.org/docs/
 .. _`mock`: http://pypi.python.org/pypi/mock
 .. _`environment variables`: http://msdn.microsoft.com/en-us/library/ee537574.aspx
-.. _`download the Windows executables`: https://bitbucket.org/tgross/gilamon/downloads
+.. _`download the Windows executables`: https://github.com/tgross/gilamon/downloads
 
 .. _`download and install Python`: http://www.python.org/download/
 .. _`download and install setuptools`: http://pypi.python.org/pypi/setuptools
 .. _`download and install pywin32`: http://sourceforge.net/projects/pywin32/files/pywin32/
-.. _`current source code`: https://bitbucket.org/tgross/gilamon/get/tip.zip
-.. _`Mercurial`: http://mercurial.selenic.com/
+.. _`current source code`: https://github.com/tgross/gilamon/zipball/master
+.. _`Git`: http://git-scm.com/
 
-.. _`Bitbucket`: http://bitbucket.org/tgross/gilamon/
-.. _`PEP 8`: http://www.python.org/dev/peps/pep-0008/
-.. _`pylint`: http://pypi.python.org/pypi/pylint
-.. _`send me a message through Bitbucket`: https://bitbucket.org/account/notifications/send/?receiver=tgross
-.. _`issue tracker`: https://bitbucket.org/tgross/gilamon/issues
+.. _`GitHub`: https://github.org/tgross/gilamon/
+.. _`send me an email`: mailto:gross.timothy@gmail.com
+.. _`issue tracker`: https://github.com/tgross/gilamon/issues
